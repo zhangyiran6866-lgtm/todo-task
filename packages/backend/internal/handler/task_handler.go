@@ -6,7 +6,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"todotask/backend/internal/model"
 	"todotask/backend/internal/repository"
 	"todotask/backend/internal/service"
 	"todotask/backend/pkg/response"
@@ -25,7 +24,7 @@ func NewTaskHandler(svc service.TaskService, logger *zap.Logger) *TaskHandler {
 }
 
 func (h *TaskHandler) getUID(c *gin.Context) (string, bool) {
-	uid, exists := c.Get("userID")
+	uid, exists := c.Get("user_id")
 	if !exists {
 		response.Unauthorized(c, "unauthorized")
 		return "", false

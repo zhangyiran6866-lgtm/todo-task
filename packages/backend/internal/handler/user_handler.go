@@ -7,7 +7,6 @@ import (
 	"go.uber.org/zap"
 
 	"todotask/backend/internal/middleware"
-	"todotask/backend/internal/model"
 	"todotask/backend/internal/repository"
 	"todotask/backend/internal/service"
 	"todotask/backend/pkg/response"

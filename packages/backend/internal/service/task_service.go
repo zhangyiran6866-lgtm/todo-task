@@ -27,7 +27,7 @@ type UpdateTaskReq struct {
 	Status      *string     `json:"status"`
 	Priority    *string     `json:"priority"`
 	DueAt       *time.Time  `json:"due_at"`
-    Description *string     `json:"description"`
+	Description *string     `json:"description"`
 }
 
 type ListTasksReq struct {
@@ -100,7 +100,12 @@ func (s *taskService) ListTasks(ctx context.Context, userID string, req *ListTas
 	}
 
 	if req.Status != "" {
-		filter = append(filter, bson.E{Key: "status", Value: req.Status})
+		if req.Status == "expired" {
+			filter = append(filter, bson.E{Key: "status", Value: bson.M{"$ne": "done"}})
+			filter = append(filter, bson.E{Key: "due_at", Value: bson.M{"$lt": time.Now(), "$ne": nil}})
+		} else {
+			filter = append(filter, bson.E{Key: "status", Value: req.Status})
+		}
 	}
 	if req.Priority != "" {
 		filter = append(filter, bson.E{Key: "priority", Value: req.Priority})

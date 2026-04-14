@@ -697,7 +697,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "priority": {
-                    "description": "\"low\"|\"medium\"|\"high\"",
+                    "description": "\"low\"|\"important\"|\"urgent\"|\"critical\"|\"routine\"",
                     "type": "string"
                 },
                 "status": {

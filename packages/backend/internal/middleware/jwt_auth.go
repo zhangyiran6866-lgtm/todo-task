@@ -38,7 +38,7 @@ func JWTAuth(cfg *config.JWTConfig) gin.HandlerFunc {
 		}
 
 		// Set the UserID in the context for downstream handlers
-		c.Set(CtxUserIDKey, claims.UserID)
+		c.Set(CtxUserIDKey, claims.UserID.Hex())
 		c.Next()
 	}
 }
