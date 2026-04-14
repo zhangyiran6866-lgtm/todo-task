@@ -23,6 +23,13 @@ import (
 	"todotask/backend/internal/service"
 )
 
+// @title TodoTask API
+// @version 1.0
+// @description TodoTask Backend API documentation
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @BasePath /api/v1
 func main() {
 	// 1. 加载配置
 	cfg, err := config.Load("configs/config.yaml")
@@ -114,6 +121,10 @@ func registerRoutes(r *gin.Engine, log *zap.Logger, db *mongo.Database, cfg *con
 	userSvc := service.NewUserService(userRepo)
 	userHandler := handler.NewUserHandler(userSvc, log)
 
+	taskRepo := repository.NewTaskRepository(db)
+	taskSvc := service.NewTaskService(taskRepo)
+	taskHandler := handler.NewTaskHandler(taskSvc, log)
+
 	// API v1 路由组
 	v1 := r.Group("/api/v1")
 	{
@@ -129,6 +140,16 @@ func registerRoutes(r *gin.Engine, log *zap.Logger, db *mongo.Database, cfg *con
 		userRoutes.Use(middleware.JWTAuth(&cfg.JWT))
 		{
 			userRoutes.GET("/me", userHandler.GetMe)
+		}
+
+		taskRoutes := v1.Group("/tasks")
+		taskRoutes.Use(middleware.JWTAuth(&cfg.JWT))
+		{
+			taskRoutes.POST("", taskHandler.CreateTask)
+			taskRoutes.GET("", taskHandler.ListTasks)
+			taskRoutes.GET("/:id", taskHandler.GetTask)
+			taskRoutes.PATCH("/:id", taskHandler.UpdateTask)
+			taskRoutes.DELETE("/:id", taskHandler.DeleteTask)
 		}
 	}
 

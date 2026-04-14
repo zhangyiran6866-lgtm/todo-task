@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"todotask/backend/internal/middleware"
+	"todotask/backend/internal/model"
 	"todotask/backend/internal/repository"
 	"todotask/backend/internal/service"
 	"todotask/backend/pkg/response"
@@ -21,6 +22,18 @@ func NewUserHandler(svc service.UserService, log *zap.Logger) *UserHandler {
 	return &UserHandler{svc: svc, log: log}
 }
 
+// GetMe godoc
+// @Summary 获取当前用户个人信息
+// @Description Retrieve the currently authenticated user's profile
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} response.Response{data=model.User} "Successfully retrieved user profile"
+// @Failure 401 {object} response.Response "Unauthorized"
+// @Failure 404 {object} response.Response "User not found"
+// @Failure 500 {object} response.Response "Internal server error"
+// @Router /users/me [get]
 func (h *UserHandler) GetMe(c *gin.Context) {
 	userIdV, exists := c.Get(middleware.CtxUserIDKey)
 	if !exists {

@@ -1,0 +1,543 @@
+definitions:
+  todotask_backend_internal_model.Task:
+    properties:
+      created_at:
+        type: string
+      description:
+        type: string
+      due_at:
+        type: string
+      id:
+        type: string
+      priority:
+        description: '"low"|"medium"|"high"'
+        type: string
+      status:
+        description: '"todo"|"in_progress"|"done"'
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  todotask_backend_internal_model.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      language:
+        type: string
+      nickname:
+        type: string
+      theme:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  todotask_backend_internal_service.CreateTaskReq:
+    properties:
+      description:
+        type: string
+      due_at:
+        type: string
+      priority:
+        type: string
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  todotask_backend_internal_service.ListTasksResp:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/todotask_backend_internal_model.Task'
+        type: array
+      next_cursor:
+        type: string
+    type: object
+  todotask_backend_internal_service.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  todotask_backend_internal_service.RefreshRequest:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  todotask_backend_internal_service.RegisterRequest:
+    properties:
+      email:
+        type: string
+      nickname:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - nickname
+    - password
+    type: object
+  todotask_backend_internal_service.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  todotask_backend_internal_service.UpdateTaskReq:
+    properties:
+      description:
+        type: string
+      due_at:
+        type: string
+      priority:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  todotask_backend_pkg_response.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: TodoTask Backend API documentation
+  title: TodoTask API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return access & refresh tokens
+      parameters:
+      - description: Login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/todotask_backend_internal_service.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully authenticated
+          schema:
+            allOf:
+            - $ref: '#/definitions/todotask_backend_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/todotask_backend_internal_service.TokenResponse'
+              type: object
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "401":
+          description: Invalid login credentials
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      summary: 用户登录
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Invalidate the refresh token
+      parameters:
+      - description: Refresh token to invalidate
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/todotask_backend_internal_service.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully logged out
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 用户登出
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Obtain a new access token using a valid refresh token
+      parameters:
+      - description: Refresh token
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/todotask_backend_internal_service.RefreshRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully refreshed token
+          schema:
+            allOf:
+            - $ref: '#/definitions/todotask_backend_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/todotask_backend_internal_service.TokenResponse'
+              type: object
+        "400":
+          description: Invalid request
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "401":
+          description: Invalid or expired token
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      summary: 刷新令牌
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user account
+      parameters:
+      - description: Registration credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/todotask_backend_internal_service.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully registered
+          schema:
+            allOf:
+            - $ref: '#/definitions/todotask_backend_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/todotask_backend_internal_service.TokenResponse'
+              type: object
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "409":
+          description: Email already exists
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      summary: 用户注册
+      tags:
+      - Auth
+  /tasks:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of tasks for the authenticated user
+      parameters:
+      - description: Filter by status (todo, in_progress, done)
+        in: query
+        name: status
+        type: string
+      - description: Filter by priority (low, medium, high)
+        in: query
+        name: priority
+        type: string
+      - description: Max number of items to return (default 20, max 50)
+        in: query
+        name: limit
+        type: integer
+      - description: Cursor for pagination (ObjectId of the last item in previous
+          page)
+        in: query
+        name: cursor
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved tasks
+          schema:
+            allOf:
+            - $ref: '#/definitions/todotask_backend_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/todotask_backend_internal_service.ListTasksResp'
+              type: object
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取任务列表
+      tags:
+      - Tasks
+    post:
+      consumes:
+      - application/json
+      description: Create a new task for the authenticated user
+      parameters:
+      - description: Task creation payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/todotask_backend_internal_service.CreateTaskReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully created task
+          schema:
+            allOf:
+            - $ref: '#/definitions/todotask_backend_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/todotask_backend_internal_model.Task'
+              type: object
+        "400":
+          description: Invalid task parameters
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 创建任务
+      tags:
+      - Tasks
+  /tasks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Soft-delete a task by ID
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted task
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "400":
+          description: Invalid task ID
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "404":
+          description: Task not found
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 删除任务
+      tags:
+      - Tasks
+    get:
+      consumes:
+      - application/json
+      description: Get details of a specific task by its ID
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved task
+          schema:
+            allOf:
+            - $ref: '#/definitions/todotask_backend_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/todotask_backend_internal_model.Task'
+              type: object
+        "400":
+          description: Invalid task ID
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "404":
+          description: Task not found
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取单个任务详情
+      tags:
+      - Tasks
+    patch:
+      consumes:
+      - application/json
+      description: Update fields of a specific task
+      parameters:
+      - description: Task ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Task update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/todotask_backend_internal_service.UpdateTaskReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated task
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "400":
+          description: Invalid task ID or parameters
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "404":
+          description: Task not found
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新任务
+      tags:
+      - Tasks
+  /users/me:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the currently authenticated user's profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved user profile
+          schema:
+            allOf:
+            - $ref: '#/definitions/todotask_backend_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/todotask_backend_internal_model.User'
+              type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取当前用户个人信息
+      tags:
+      - Users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -73,11 +73,11 @@ class ApifoxMcpServer {
       const projectId = args.projectId;
 
       try {
-        const backendPath = path.resolve(process.cwd(), '../backend'); 
+        const backendPath = path.resolve(process.cwd(), '../../packages/backend'); 
         console.error(`Running swag init in ${backendPath}...`);
         
         try {
-          const { stdout, stderr } = await execAsync('export PATH=$PATH:/usr/local/go/bin && export PATH=$PATH:$(go env GOPATH)/bin && swag init -g cmd/server/main.go', { cwd: backendPath });
+          const { stdout, stderr } = await execAsync('export PATH=$PATH:/usr/local/go/bin && go run github.com/swaggo/swag/cmd/swag@latest init -g cmd/server/main.go --parseDependency --parseInternal', { cwd: backendPath });
           console.error(stdout);
         } catch (execErr: any) {
           console.error('[swag init error]', execErr.stdout);

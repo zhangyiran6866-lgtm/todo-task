@@ -62,10 +62,10 @@
 **目标**：完成任务的增删改查后端接口
 
 ### 后端
-- [ ] `model/task.go` Task 结构体
-- [ ] `repository/task_repository.go` CRUD + 游标分页
-- [ ] `service/task_service.go` 业务逻辑（含归属权校验）
-- [ ] `handler/task_handler.go` 5 个接口（参见 `docs/api.md`）
+- [x] `model/task.go` Task 结构体
+- [x] `repository/task_repository.go` CRUD + 游标分页
+- [x] `service/task_service.go` 业务逻辑（含归属权校验）
+- [x] `handler/task_handler.go` 5 个接口（参见 `docs/api.md`）
 
 **DoD**：通过 Apifox 可完整测试任务 CRUD 接口，含软删除验证
 
