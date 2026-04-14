@@ -1,0 +1,21 @@
+app:
+  port: 8080
+  env: development
+
+mongodb:
+  uri: "mongodb://admin:secret123@localhost:27017/todotask?authSource=admin"
+  database: "todotask"
+  max_pool_size: 20
+  min_pool_size: 5
+  connect_timeout_seconds: 10
+  operation_timeout_seconds: 5
+
+jwt:
+  access_secret: "change-me-in-production-access"
+  refresh_secret: "change-me-in-production-refresh"
+  access_expire_minutes: 15
+  refresh_expire_days: 7
+
+log:
+  level: debug
+  format: console

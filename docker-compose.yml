@@ -1,0 +1,55 @@
+version: '3.9'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: todotask_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: secret123
+      MONGO_INITDB_DATABASE: todotask
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - todotask_net
+
+  backend:
+    build:
+      context: ./packages/backend
+      dockerfile: Dockerfile
+    container_name: todotask_backend
+    restart: unless-stopped
+    depends_on:
+      - mongodb
+    environment:
+      - APP_ENV=development
+      - MONGODB_URI=mongodb://admin:secret123@mongodb:27017/todotask?authSource=admin
+    ports:
+      - '8080:8080'
+    networks:
+      - todotask_net
+    volumes:
+      - ./packages/backend/configs:/app/configs
+
+  frontend:
+    build:
+      context: ./packages/frontend
+      dockerfile: Dockerfile
+    container_name: todotask_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - '5173:80'
+    networks:
+      - todotask_net
+
+networks:
+  todotask_net:
+    driver: bridge
+
+volumes:
+  mongo_data:

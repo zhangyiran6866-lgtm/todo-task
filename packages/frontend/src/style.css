@@ -1,0 +1,45 @@
+/* Tailwind CSS 基础层 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Tech-Noir 全局 CSS 变量 ===== */
+:root {
+  /* 默认霓虹主题：Cyan */
+  --neon: #00f3ff;
+  --neon-glow: rgba(0, 243, 255, 0.4);
+  --bg-dark: #050a0f;
+  --bg-card: rgba(255, 255, 255, 0.04);
+  --border-dim: rgba(255, 255, 255, 0.08);
+  --text-primary: #e8f4f8;
+  --text-secondary: rgba(232, 244, 248, 0.6);
+}
+
+/* 主题色变体 */
+[data-theme='purple'] { --neon: #bc13fe; --neon-glow: rgba(188, 19, 254, 0.4); }
+[data-theme='green']  { --neon: #39ff14; --neon-glow: rgba(57, 255, 20, 0.4); }
+[data-theme='pink']   { --neon: #ff00e5; --neon-glow: rgba(255, 0, 229, 0.4); }
+
+/* ===== 全局重置 ===== */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: 'Inter', 'PingFang SC', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ===== 工具类扩展 ===== */
+.text-neon    { color: var(--neon); }
+.border-neon  { border-color: var(--neon); }
+.shadow-neon  { box-shadow: 0 0 20px var(--neon-glow); }
+.bg-glass     { background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border-dim); }
+
+/* ===== 滚动条美化 ===== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--neon-glow); border-radius: 2px; }
