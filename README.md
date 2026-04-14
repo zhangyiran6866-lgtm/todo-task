@@ -25,7 +25,7 @@ TodoTask 是一个面向个人用户的**全栈任务管理系统**，采用 Tec
 
 | 端 | 技术 |
 |----|------|
-| **前端** | Vue 3 · TypeScript · Tailwind CSS · Pinia · vue-i18n · GSAP |
+| **前端** | Vue 3 · TypeScript · Tailwind CSS · Pinia · vue-i18n · Vue Particles (tsparticles) |
 | **后端** | Go 1.22 · Gin · JWT 双 Token |
 | **数据库** | MongoDB 7.0（mongo-driver/v2） |
 | **工程** | Monorepo · pnpm workspaces · Docker · docker-compose |

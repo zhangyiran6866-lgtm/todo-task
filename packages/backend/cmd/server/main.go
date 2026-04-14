@@ -17,6 +17,10 @@ import (
 	"todotask/backend/pkg/config"
 	"todotask/backend/pkg/logger"
 	"todotask/backend/pkg/response"
+	"todotask/backend/internal/handler"
+	"todotask/backend/internal/middleware"
+	"todotask/backend/internal/repository"
+	"todotask/backend/internal/service"
 )
 
 func main() {
@@ -66,7 +70,8 @@ func main() {
 	r.Use(gin.Recovery())
 
 	// 5. 注册路由
-	registerRoutes(r, log)
+	db := mongoClient.Database(cfg.MongoDB.Database)
+	registerRoutes(r, log, db, cfg)
 
 	// 6. 启动服务器 + 优雅退出
 	srv := &http.Server{
@@ -94,15 +99,38 @@ func main() {
 	log.Info("server exited")
 }
 
-func registerRoutes(r *gin.Engine, log *zap.Logger) {
+func registerRoutes(r *gin.Engine, log *zap.Logger, db *mongo.Database, cfg *config.Config) {
 	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
 		response.OK(c, gin.H{"status": "ok", "env": gin.Mode()})
 	})
 
-	// API v1 路由组（后续 Phase 中挂载各模块 handler）
+	// 初始化依赖
+	userRepo := repository.NewUserRepository(db)
+	tokenRepo := repository.NewTokenRepository(db)
+	authSvc := service.NewAuthService(userRepo, tokenRepo, &cfg.JWT)
+	authHandler := handler.NewAuthHandler(authSvc, log)
+
+	userSvc := service.NewUserService(userRepo)
+	userHandler := handler.NewUserHandler(userSvc, log)
+
+	// API v1 路由组
 	v1 := r.Group("/api/v1")
-	_ = v1 // 占位，Phase 1 开始使用
+	{
+		authRoutes := v1.Group("/auth")
+		{
+			authRoutes.POST("/register", authHandler.Register)
+			authRoutes.POST("/login", authHandler.Login)
+			authRoutes.POST("/refresh", authHandler.Refresh)
+			authRoutes.POST("/logout", middleware.JWTAuth(&cfg.JWT), authHandler.Logout)
+		}
+
+		userRoutes := v1.Group("/users")
+		userRoutes.Use(middleware.JWTAuth(&cfg.JWT))
+		{
+			userRoutes.GET("/me", userHandler.GetMe)
+		}
+	}
 
 	log.Info("routes registered")
 }

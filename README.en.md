@@ -25,7 +25,7 @@ TodoTask is a **full-stack personal task management system** built with an immer
 
 | Layer | Technology |
 |-------|-----------|
-| **Frontend** | Vue 3 · TypeScript · Tailwind CSS · Pinia · vue-i18n · GSAP |
+| **Frontend** | Vue 3 · TypeScript · Tailwind CSS · Pinia · vue-i18n · Vue Particles (tsparticles) |
 | **Backend** | Go 1.22 · Gin · JWT Dual Token |
 | **Database** | MongoDB 7.0 (mongo-driver/v2) |
 | **Infra** | Monorepo · pnpm workspaces · Docker · docker-compose |

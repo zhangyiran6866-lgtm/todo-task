@@ -36,22 +36,22 @@
 
 ---
 
-## Phase 1 · 认证模块 🚧
+## Phase 1 · 认证模块 ✅
 
 **目标**：完成用户注册、登录、JWT 双 Token 机制
 
 ### 后端
-- [ ] `model/user.go` User 结构体
-- [ ] `repository/user_repository.go` 增删改查
-- [ ] `service/auth_service.go` 注册、登录、刷新、退出逻辑
-- [ ] `handler/auth_handler.go` 4 个接口（参见 `docs/api.md`）
-- [ ] JWT 双 Token 中间件（access 15min + refresh 7d 黑名单）
+- [x] `model/user.go` User 结构体
+- [x] `repository/user_repository.go` 增删改查
+- [x] `service/auth_service.go` 注册、登录、刷新、退出逻辑
+- [x] `handler/auth_handler.go` 4 个接口（参见 `docs/api.md`）
+- [x] JWT 双 Token 中间件（access 15min + refresh 7d 黑名单）
 
 ### 前端
-- [ ] `LoginView.vue` 登录页面
-- [ ] `RegisterView.vue` 注册页面
-- [ ] `useAuthStore.ts` Token 持久化
-- [ ] 路由守卫（未登录跳转 `/login`）
+- [x] `LoginView.vue` 登录页面
+- [x] `RegisterView.vue` 注册页面
+- [x] `useAuthStore.ts` Token 持久化
+- [x] 路由守卫（未登录跳转 `/login`）
 
 **DoD**：可完成注册 → 登录 → 获取用户信息 → 退出完整流程
 

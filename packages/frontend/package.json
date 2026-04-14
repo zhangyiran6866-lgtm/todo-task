@@ -11,26 +11,30 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "vue": "^3.5.0",
-    "vue-router": "^4.4.0",
-    "pinia": "^2.2.0",
-    "vue-i18n": "^9.14.0",
+    "@tsparticles/engine": "^3.9.1",
+    "@tsparticles/slim": "^3.9.1",
+    "@tsparticles/vue3": "^3.0.1",
     "axios": "^1.7.0",
-    "gsap": "^3.12.0"
+    "gsap": "^3.12.0",
+    "pinia": "^2.2.0",
+    "tsparticles": "^3.9.1",
+    "vue": "^3.5.0",
+    "vue-i18n": "^9.14.0",
+    "vue-router": "^4.4.0"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@vitejs/plugin-vue": "^5.2.0",
     "@vue/tsconfig": "^0.5.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^9.0.0",
+    "eslint-plugin-vue": "^9.0.0",
+    "less": "^4.2.0",
+    "postcss": "^8.4.0",
+    "prettier": "^3.3.0",
+    "tailwindcss": "^3.4.0",
     "typescript": "~5.6.0",
     "vite": "^6.0.0",
-    "vue-tsc": "^2.0.0",
-    "tailwindcss": "^3.4.0",
-    "postcss": "^8.4.0",
-    "autoprefixer": "^10.4.0",
-    "less": "^4.2.0",
-    "eslint": "^9.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.0.0",
-    "eslint-plugin-vue": "^9.0.0",
-    "prettier": "^3.3.0"
+    "vue-tsc": "^2.0.0"
   }
 }
