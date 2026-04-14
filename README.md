@@ -50,6 +50,7 @@ todotask/
 │           └── styles/       # 全局样式 & Less 变量
 ├── docs/                     # 项目文档
 ├── agent/                    # AI 编码规范（Skill 文件）
+├── mcp/                      # MCP 工具集（如 apifox-backend）
 └── scripts/                  # 数据备份 & 恢复脚本
 ```
 

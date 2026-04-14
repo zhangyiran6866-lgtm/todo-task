@@ -45,6 +45,9 @@ todotask/
 │   ├── frontend-prd.md          ← 前端 PRD 文档
 │   └── testing.md               ← 自动化测试文档
 │
+├── mcp/                         ← MCP (Model Context Protocol) 插件集
+│   └── apifox-backend/          ← Apifox 接口自动化同步 MCP
+│
 ├── agent/                       ← AI 编码规范（Skill 文件）
 │   ├── backend/skill.md         ← Go 后端开发规范
 │   ├── database/skill.md        ← MongoDB 数据库操作规范
@@ -235,6 +238,15 @@ todotask/
 | 6 | 后端用 `fmt.Println` 打日志（必须用 Zap） |
 | 7 | 数据库物理删除业务数据 |
 | 8 | 未经明确授权执行 `git push` |
-| 9 | 在 Handler 层写 MongoDB 查询 |
 | 10 | 启动无法退出的 goroutine（fire-and-forget） |
+
+---
+
+## 十二、MCP (Model Context Protocol) 规范
+
+本项目的所有 MCP 工具均统一存放在根目录的 `mcp/` 文件夹下。
+
+- **命名与结构规范**：每个 MCP 必须以独立的文件夹存放，文件夹命名依据其功能属性（例如 `apifox-backend`）。具体的 MCP 服务代码、依赖文件和配置参数均**只能**存放于其对应命名的子文件夹内。
+- **使用要求**：视具体开发阶段按需调用和激活。
+- **当前状态**：项目中已引入 `apifox-backend` 节点 MCP 服务用于后端 API 文档的自动化同步，**注意：在 Phase 2（任务 CRUD）开发阶段完成之前，不得擅自使用或激活该 MCP**，需等到 Phase 2 完成并验证通过后才能启用此扩展进行 API 调试与推送。
 
