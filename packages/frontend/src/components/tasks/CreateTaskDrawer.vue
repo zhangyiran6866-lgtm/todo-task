@@ -6,18 +6,20 @@
         v-if="modelValue" 
         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
         @click="close"
-      ></div>
+      />
     </Transition>
 
     <!-- Drawer -->
     <Transition name="slide">
       <div 
         v-if="modelValue"
-        class="fixed right-0 top-0 bottom-0 w-full max-w-xl bg-[#0a1118] border-l border-white/10 z-50 flex flex-col shadow-2xl"
+        class="fixed right-0 top-0 bottom-0 w-full max-w-2xl bg-[#0a1118] border-l border-white/10 z-50 flex flex-col shadow-2xl"
       >
         <!-- Header -->
         <div class="px-6 py-5 border-b border-white/10 flex items-center justify-between">
-          <h2 class="text-xl font-medium text-white tracking-wide">新建任务</h2>
+          <h2 class="text-xl font-medium text-white tracking-wide">
+            新建任务
+          </h2>
           <button 
             class="p-2 text-white/50 hover:text-neon transition-colors duration-200"
             @click="close"
@@ -28,8 +30,10 @@
 
         <!-- Form Body -->
         <div class="flex-1 overflow-y-auto px-6 py-6">
-          <form @submit.prevent="submit" class="space-y-8">
-            
+          <form
+            class="space-y-8"
+            @submit.prevent="submit"
+          >
             <!-- Title -->
             <div class="space-y-2 relative">
               <div class="flex justify-between items-center">
@@ -45,7 +49,7 @@
                 maxlength="20"
                 placeholder="输入任务名"
                 class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-neon focus:shadow-[0_0_10px_var(--neon-glow)] transition-all duration-300"
-              />
+              >
             </div>
 
             <!-- Description -->
@@ -56,24 +60,24 @@
                 rows="4"
                 placeholder="请输入任务描述"
                 class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-neon focus:shadow-[0_0_10px_var(--neon-glow)] transition-all duration-300 resize-none"
-              ></textarea>
+              />
             </div>
 
             <!-- Priority Tags -->
             <div class="space-y-3">
               <label class="block text-sm font-medium text-white/70">标签状态</label>
-              <div class="flex flex-wrap gap-2">
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
                 <button
                   v-for="p in priorityOptions"
                   :key="p.value"
                   type="button"
-                  class="px-4 py-2 rounded-lg text-sm border transition-all duration-300 pointer"
+                  class="px-4 py-2 rounded-lg text-sm border transition-all duration-300 pointer whitespace-nowrap"
                   :class="[
                     form.priority === p.value 
                       ? `${p.activeClass} shadow-[0_0_15px_var(--neon-glow)]` 
                       : 'border-white/10 text-white/40 hover:border-white/30 bg-[#111a24]'
                   ]"
-                  @click="form.priority = p.value as any"
+                  @click="form.priority = p.value"
                 >
                   {{ p.label }}
                 </button>
@@ -97,14 +101,25 @@
                 >
                   <template #action-row="{ selectDate, closePicker }">
                     <div class="flex justify-end gap-4 px-2 py-1">
-                      <button type="button" @click="closePicker" class="text-white/60 text-sm hover:text-white transition-colors">取消</button>
-                      <button type="button" @click="selectDate" class="text-neon text-sm font-medium hover:text-neon/80 transition-colors">确认</button>
+                      <button
+                        type="button"
+                        class="text-white/60 text-sm hover:text-white transition-colors"
+                        @click="closePicker"
+                      >
+                        取消
+                      </button>
+                      <button
+                        type="button"
+                        class="text-neon text-sm font-medium hover:text-neon/80 transition-colors"
+                        @click="selectDate"
+                      >
+                        确认
+                      </button>
                     </div>
                   </template>
                 </VueDatePicker>
               </div>
             </div>
-
           </form>
         </div>
 

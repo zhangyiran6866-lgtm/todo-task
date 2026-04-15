@@ -40,8 +40,16 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 		return
 	}
 	
-	id, ok := userIdV.(bson.ObjectID)
+	idStr, ok := userIdV.(string)
 	if !ok {
+		h.log.Error("invalid user_id type in context", zap.Any("type", userIdV))
+		response.InternalError(c, "internal server error")
+		return
+	}
+
+	id, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		h.log.Error("invalid user_id format in context", zap.String("id", idStr), zap.Error(err))
 		response.InternalError(c, "internal server error")
 		return
 	}

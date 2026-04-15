@@ -16,9 +16,9 @@
 }
 
 /* 主题色变体 */
-[data-theme='purple'] { --neon: #bc13fe; --neon-glow: rgba(188, 19, 254, 0.4); }
+[data-theme='purple'] { --neon: #930ec8; --neon-glow: rgba(188, 19, 254, 0.4); }
 [data-theme='green']  { --neon: #39ff14; --neon-glow: rgba(57, 255, 20, 0.4); }
-[data-theme='pink']   { --neon: #ff00e5; --neon-glow: rgba(255, 0, 229, 0.4); }
+[data-theme='pink']   { --neon: #dc86d4; --neon-glow: rgba(225, 152, 217, 0.4); }
 
 /* ===== 全局重置 ===== */
 *, *::before, *::after { box-sizing: border-box; }
