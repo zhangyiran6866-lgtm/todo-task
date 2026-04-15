@@ -46,7 +46,7 @@
           :class="dueDateColor"
         >
           <Calendar class="w-3.5 h-3.5" />
-          <span>截止日期：{{ formattedDate }}</span>
+          <span>{{ t('tasks.dueDateShort') }}{{ formattedDate }}</span>
         </div>
 
         <div class="mt-4 flex items-center justify-between gap-3 text-xs">
@@ -63,7 +63,7 @@
               class="px-2 py-1 rounded-md flex items-center gap-1 border text-rose-500 border-rose-500/50 bg-rose-500/10"
             >
               <AlertCircle class="w-3 h-3" />
-              <span>已过期</span>
+              <span>{{ t('tasks.statusExpired') }}</span>
             </div>
 
             <div
@@ -91,6 +91,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Calendar, AlertCircle, ArrowUpCircle, Check } from 'lucide-vue-next'
 import type { Task } from '@/api/task'
 
@@ -107,6 +108,7 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const { t } = useI18n()
 
 const priorityTagClass = computed(() => {
   switch (props.task.priority) {
@@ -129,20 +131,20 @@ const statusTagClass = computed(() => {
 
 const statusText = computed(() => {
   switch (props.task.status) {
-    case 'done': return '已完成'
-    case 'in_progress': return '进行中'
-    default: return '待处理'
+    case 'done': return t('tasks.statusDone')
+    case 'in_progress': return t('tasks.statusInProgress')
+    default: return t('tasks.statusTodo')
   }
 })
 
 const priorityText = computed(() => {
   switch (props.task.priority) {
-    case 'critical': return '重要紧急'
-    case 'important': return '重要不紧急'
-    case 'urgent': return '紧急不重要'
-    case 'low': return '不重要也不紧急'
-    case 'routine': return '日常任务'
-    default: return '未分类'
+    case 'critical': return t('tasks.priorityCritical')
+    case 'important': return t('tasks.priorityImportant')
+    case 'urgent': return t('tasks.priorityUrgent')
+    case 'low': return t('tasks.priorityLow')
+    case 'routine': return t('tasks.priorityRoutine')
+    default: return t('tasks.priorityAll')
   }
 })
 

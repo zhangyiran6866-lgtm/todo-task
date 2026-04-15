@@ -18,7 +18,7 @@
         <!-- Header -->
         <div class="px-6 py-5 border-b border-white/10 flex items-center justify-between">
           <h2 class="text-xl font-medium text-white tracking-wide">
-            新建任务
+            {{ t('tasks.createTask') }}
           </h2>
           <button 
             class="p-2 text-white/50 hover:text-neon transition-colors duration-200"
@@ -38,7 +38,7 @@
             <div class="space-y-2 relative">
               <div class="flex justify-between items-center">
                 <label class="block text-sm font-medium text-white/70">
-                  任务名称 <span class="text-neon ml-1">*</span>
+                  {{ t('tasks.taskName') }} <span class="text-neon ml-1">*</span>
                 </label>
                 <span class="text-xs text-white/40">{{ form.title.length }}/20</span>
               </div>
@@ -47,25 +47,25 @@
                 required
                 type="text"
                 maxlength="20"
-                placeholder="输入任务名"
+                :placeholder="t('tasks.taskName')"
                 class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-neon focus:shadow-[0_0_10px_var(--neon-glow)] transition-all duration-300"
               >
             </div>
 
             <!-- Description -->
             <div class="space-y-2">
-              <label class="block text-sm font-medium text-white/70">任务描述</label>
+              <label class="block text-sm font-medium text-white/70">{{ t('tasks.taskDescription') }}</label>
               <textarea 
                 v-model="form.description"
                 rows="4"
-                placeholder="请输入任务描述"
+                :placeholder="t('tasks.taskDescription')"
                 class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-neon focus:shadow-[0_0_10px_var(--neon-glow)] transition-all duration-300 resize-none"
               />
             </div>
 
             <!-- Priority Tags -->
             <div class="space-y-3">
-              <label class="block text-sm font-medium text-white/70">标签状态</label>
+              <label class="block text-sm font-medium text-white/70">{{ t('tasks.priorityFilter') }}</label>
               <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
                 <button
                   v-for="p in priorityOptions"
@@ -79,7 +79,7 @@
                   ]"
                   @click="form.priority = p.value"
                 >
-                  {{ p.label }}
+                  {{ t(p.key) }}
                 </button>
               </div>
             </div>
@@ -87,14 +87,14 @@
             <!-- DDL Date Picker -->
             <div class="space-y-3">
               <label class="block text-sm font-medium text-white/70">
-                截止时间 (DDL) <span class="text-neon ml-1">*</span>
+                {{ t('tasks.dueDate') }} (DDL) <span class="text-neon ml-1">*</span>
               </label>
               <div class="vue-datepicker-wrapper">
                 <VueDatePicker 
                   v-model="ddlDate" 
                   dark
                   :preset-dates="presetDates"
-                  placeholder="选择截止日期"
+                  :placeholder="t('tasks.selectDueDate')"
                   format="yyyy/MM/dd HH:mm"
                   :enable-time-picker="true"
                   teleport="body"
@@ -106,14 +106,14 @@
                         class="text-white/60 text-sm hover:text-white transition-colors"
                         @click="closePicker"
                       >
-                        取消
+                        {{ t('common.cancel') }}
                       </button>
                       <button
                         type="button"
                         class="text-neon text-sm font-medium hover:text-neon/80 transition-colors"
                         @click="selectDate"
                       >
-                        确认
+                        {{ t('common.confirm') }}
                       </button>
                     </div>
                   </template>
@@ -130,7 +130,7 @@
             class="px-5 py-2.5 rounded-lg text-white/70 hover:bg-white/5 transition-colors duration-200"
             @click="close"
           >
-            取消
+            {{ t('tasks.cancelCreate') }}
           </button>
           <button 
             type="button"
@@ -138,7 +138,7 @@
             :disabled="!form.title.trim() || !ddlDate || isSubmitting"
             @click="submit"
           >
-            {{ isSubmitting ? '创建中...' : '创建' }}
+            {{ isSubmitting ? t('tasks.creating') : t('tasks.create') }}
           </button>
         </div>
       </div>
@@ -147,7 +147,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { X } from 'lucide-vue-next'
 import { useTaskStore } from '@/stores/use-task-store'
 import type { CreateTaskReq } from '@/api/task'
@@ -166,22 +167,23 @@ const emit = defineEmits<{
 }>()
 
 const taskStore = useTaskStore()
+const { t } = useI18n()
 const isSubmitting = ref(false)
 
 const ddlDate = ref<Date | null>(null)
 
 const priorityOptions = [
-  { label: '重要紧急', value: 'critical', activeClass: 'border-rose-500 text-rose-400 bg-rose-500/10' },
-  { label: '重要不紧急', value: 'important', activeClass: 'border-purple-500 text-purple-400 bg-purple-500/10' },
-  { label: '紧急不重要', value: 'urgent', activeClass: 'border-amber-500 text-amber-400 bg-amber-500/10' },
-  { label: '不重要也不紧急', value: 'low', activeClass: 'border-emerald-500 text-emerald-400 bg-emerald-500/10' },
-  { label: '日常任务', value: 'routine', activeClass: 'border-blue-400 text-blue-400 bg-blue-400/10' },
+  { key: 'tasks.priorityCritical', value: 'critical', activeClass: 'border-rose-500 text-rose-400 bg-rose-500/10' },
+  { key: 'tasks.priorityImportant', value: 'important', activeClass: 'border-purple-500 text-purple-400 bg-purple-500/10' },
+  { key: 'tasks.priorityUrgent', value: 'urgent', activeClass: 'border-amber-500 text-amber-400 bg-amber-500/10' },
+  { key: 'tasks.priorityLow', value: 'low', activeClass: 'border-emerald-500 text-emerald-400 bg-emerald-500/10' },
+  { key: 'tasks.priorityRoutine', value: 'routine', activeClass: 'border-blue-400 text-blue-400 bg-blue-400/10' },
 ]
 
-const presetDates = ref([
-  { label: '一天', value: new Date(new Date().setDate(new Date().getDate() + 1)) },
-  { label: '三天', value: new Date(new Date().setDate(new Date().getDate() + 3)) },
-  { label: '一周', value: new Date(new Date().setDate(new Date().getDate() + 7)) },
+const presetDates = computed(() => [
+  { label: t('tasks.oneDay'), value: new Date(new Date().setDate(new Date().getDate() + 1)) },
+  { label: t('tasks.threeDays'), value: new Date(new Date().setDate(new Date().getDate() + 3)) },
+  { label: t('tasks.oneWeek'), value: new Date(new Date().setDate(new Date().getDate() + 7)) },
 ])
 
 const initialForm = (): CreateTaskReq => ({

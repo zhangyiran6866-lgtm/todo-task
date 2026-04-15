@@ -5,14 +5,17 @@ import { createI18n } from 'vue-i18n'
 import App from './App.vue'
 import router from './router'
 import './style.css'
+import { messages } from './locales/messages'
 
 import Particles from "@tsparticles/vue3"
 import { loadSlim } from "@tsparticles/slim"
 
 const i18n = createI18n({
   legacy: false,
+  globalInjection: true,
   locale: localStorage.getItem('language') || 'zh',
-  messages: {}
+  fallbackLocale: 'zh',
+  messages
 })
 
 const app = createApp(App)

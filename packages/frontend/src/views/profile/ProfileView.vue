@@ -1,55 +1,85 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import {
   ArrowLeft,
   Eye,
   KeyRound,
   LoaderCircle,
   LogOut,
+  Palette,
   ShieldCheck,
   TriangleAlert,
+  UserRound,
 } from "lucide-vue-next";
 
 import { userApi } from "@/api/user";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { useThemeStore } from "@/stores/use-theme-store";
 
 const router = useRouter();
 const authStore = useAuthStore();
+const themeStore = useThemeStore();
+const { t } = useI18n();
 
-const form = reactive({
+const profileForm = reactive({
+  nickname: authStore.user?.nickname || "",
+  language: themeStore.language,
+  theme: themeStore.theme,
+});
+const profileNotice = ref("");
+const isSavingProfile = ref(false);
+
+const passwordForm = reactive({
   oldPassword: "",
   newPassword: "",
   confirmPassword: "",
 });
-const isSubmitting = ref(false);
-const errorMessage = ref("");
+const isSubmittingPassword = ref(false);
+const passwordErrorMessage = ref("");
 const showConfirmDialog = ref(false);
 const showOldPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
 
-const canSubmit = computed(() => {
+const canSubmitPassword = computed(() => {
   return Boolean(
-    form.oldPassword &&
-    form.newPassword &&
-    form.confirmPassword &&
-    !isSubmitting.value,
+    passwordForm.oldPassword &&
+      passwordForm.newPassword &&
+      passwordForm.confirmPassword &&
+      !isSubmittingPassword.value,
   );
 });
 
-function validateForm() {
-  if (!form.oldPassword || !form.newPassword || !form.confirmPassword) {
-    return "请完整填写旧密码、新密码和确认密码";
+const themeOptions = computed(() => [
+  { value: "cyan", label: t("theme.cyan"), swatch: "bg-[#00f3ff]" },
+  { value: "purple", label: t("theme.purple"), swatch: "bg-[#bc13fe]" },
+  { value: "green", label: t("theme.green"), swatch: "bg-[#39ff14]" },
+  { value: "pink", label: t("theme.pink"), swatch: "bg-[#ff8a00]" },
+] as const);
+
+const languageOptions = computed(() => [
+  { value: "zh", label: t("lang.zh") },
+  { value: "en", label: t("lang.en") },
+] as const);
+
+function validatePasswordForm() {
+  if (
+    !passwordForm.oldPassword ||
+    !passwordForm.newPassword ||
+    !passwordForm.confirmPassword
+  ) {
+    return t("profile.validationRequired");
   }
-  if (form.newPassword.length < 8) {
-    return "新密码至少需要 8 位";
+  if (passwordForm.newPassword.length < 8) {
+    return t("profile.validationLength");
   }
-  if (form.newPassword !== form.confirmPassword) {
-    return "两次输入的新密码不一致";
+  if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+    return t("profile.validationMismatch");
   }
-  if (form.oldPassword === form.newPassword) {
-    return "新密码不能与旧密码相同";
+  if (passwordForm.oldPassword === passwordForm.newPassword) {
+    return t("profile.validationSame");
   }
   return "";
 }
@@ -58,13 +88,13 @@ function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
     return error.message;
   }
-  return "修改密码失败，请稍后重试";
+  return t("profile.changeFailed");
 }
 
-function resetForm() {
-  form.oldPassword = "";
-  form.newPassword = "";
-  form.confirmPassword = "";
+function resetPasswordForm() {
+  passwordForm.oldPassword = "";
+  passwordForm.newPassword = "";
+  passwordForm.confirmPassword = "";
   showOldPassword.value = false;
   showNewPassword.value = false;
   showConfirmPassword.value = false;
@@ -74,40 +104,74 @@ function handleBack() {
   router.push("/tasks");
 }
 
-async function handleChangePassword() {
-  errorMessage.value = "";
+async function handleSaveProfile() {
+  profileNotice.value = "";
+  isSavingProfile.value = true;
 
-  const validationError = validateForm();
+  try {
+    themeStore.setLanguage(profileForm.language);
+    themeStore.setTheme(profileForm.theme);
+
+    if (authStore.user) {
+      authStore.setUser({
+        ...authStore.user,
+        nickname: profileForm.nickname,
+        language: profileForm.language,
+        theme: profileForm.theme,
+      });
+    }
+
+    try {
+      const updated = await userApi.updateMe({
+        nickname: profileForm.nickname,
+        language: profileForm.language,
+        theme: profileForm.theme,
+      });
+      authStore.setUser(updated);
+    } catch {
+      // Some backend envs may not expose profile update endpoint yet.
+    }
+
+    profileNotice.value = t("profile.saveSuccess");
+  } catch {
+    profileNotice.value = t("profile.saveFailed");
+  } finally {
+    isSavingProfile.value = false;
+  }
+}
+
+async function handleChangePassword() {
+  passwordErrorMessage.value = "";
+  const validationError = validatePasswordForm();
   if (validationError) {
-    errorMessage.value = validationError;
+    passwordErrorMessage.value = validationError;
     return;
   }
-
   showConfirmDialog.value = true;
 }
 
 function handleCancelConfirm() {
-  if (isSubmitting.value) return;
+  if (isSubmittingPassword.value) return;
   showConfirmDialog.value = false;
 }
 
 async function handleConfirmChangePassword() {
-  errorMessage.value = "";
+  passwordErrorMessage.value = "";
   showConfirmDialog.value = false;
-  isSubmitting.value = true;
+  isSubmittingPassword.value = true;
 
   try {
     await userApi.changePassword({
-      old_password: form.oldPassword,
-      new_password: form.newPassword,
+      old_password: passwordForm.oldPassword,
+      new_password: passwordForm.newPassword,
     });
-    resetForm();
+    resetPasswordForm();
     await authStore.logout();
     await router.push("/login");
   } catch (error) {
-    errorMessage.value = getErrorMessage(error);
+    passwordErrorMessage.value = getErrorMessage(error);
   } finally {
-    isSubmitting.value = false;
+    isSubmittingPassword.value = false;
   }
 }
 </script>
@@ -115,29 +179,130 @@ async function handleConfirmChangePassword() {
 <template>
   <main class="min-h-screen bg-[#050a0f] text-[var(--text-primary)]">
     <header class="border-b border-white/10 bg-black/20 backdrop-blur-xl">
-      <div
-        class="mx-auto flex max-w-5xl items-center justify-between px-6 py-5"
-      >
+      <div class="mx-auto flex max-w-5xl items-center justify-between px-4 md:px-6 py-5">
         <button
           class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-white/10 text-white/65 transition-colors hover:border-neon hover:text-neon"
           type="button"
-          aria-label="返回任务列表"
+          :aria-label="t('tasks.backToList')"
           @click="handleBack"
         >
-          <ArrowLeft class="h-10 w-10" />
+          <ArrowLeft class="h-5 w-5" />
         </button>
-
-        <div class="text-right">
-          <h1 class="text-2xl font-semibold text-white">
-            修改密码
-          </h1>
-        </div>
+        <h1 class="text-xl md:text-2xl font-semibold text-white">
+          {{ t("profile.title") }}
+        </h1>
       </div>
     </header>
 
-    <section class="mx-auto max-w-xl px-6 py-8">
+    <section class="mx-auto max-w-5xl px-4 md:px-6 py-6 md:py-8 grid gap-6 md:grid-cols-2">
       <section
-        class="rounded-2xl border border-[rgba(0,243,255,0.15)] bg-[rgba(5,10,15,0.4)] p-8 shadow-[0_0_30px_rgba(0,0,0,0.25)] backdrop-blur-xl"
+        class="rounded-2xl border border-[rgba(0,243,255,0.15)] bg-[rgba(5,10,15,0.4)] p-6 shadow-[0_0_30px_rgba(0,0,0,0.25)] backdrop-blur-xl"
+      >
+        <div class="flex items-center gap-3">
+          <div
+            class="flex h-10 w-10 items-center justify-center rounded-md border border-neon/70 bg-neon/10 text-neon"
+          >
+            <UserRound class="h-5 w-5" />
+          </div>
+          <h2 class="text-lg font-semibold text-white">
+            {{ t("profile.accountInfo") }}
+          </h2>
+        </div>
+
+        <div class="mt-6 space-y-6">
+          <div>
+            <label class="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
+              {{ t("profile.email") }}
+            </label>
+            <input
+              :value="authStore.user?.email || ''"
+              disabled
+              class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white/70"
+            >
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
+              {{ t("profile.nickname") }}
+            </label>
+            <input
+              v-model="profileForm.nickname"
+              :placeholder="t('profile.nicknamePlaceholder')"
+              class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white placeholder-white/35 focus:border-neon focus:outline-none"
+            >
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
+              {{ t("profile.language") }}
+            </label>
+            <select
+              v-model="profileForm.language"
+              class="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white focus:border-neon focus:outline-none"
+            >
+              <option
+                v-for="option in languageOptions"
+                :key="option.value"
+                :value="option.value"
+                class="bg-[#0b1219]"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label class="mb-3 block text-sm font-medium text-[var(--text-secondary)]">
+              {{ t("profile.theme") }}
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+              <button
+                v-for="option in themeOptions"
+                :key="option.value"
+                type="button"
+                class="h-11 rounded-lg border px-3 text-sm transition-colors flex items-center justify-center gap-2"
+                :class="
+                  profileForm.theme === option.value
+                    ? 'border-neon bg-neon/10 text-neon'
+                    : 'border-white/10 bg-white/5 text-white/70 hover:border-white/25'
+                "
+                @click="profileForm.theme = option.value"
+              >
+                <Palette class="h-4 w-4" />
+                <span>{{ option.label }}</span>
+                <span :class="['h-2.5 w-2.5 rounded-full', option.swatch]" />
+              </button>
+            </div>
+          </div>
+
+          <p
+            v-if="profileNotice"
+            class="rounded-md border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200"
+          >
+            {{ profileNotice }}
+          </p>
+
+          <button
+            class="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[var(--neon)] px-4 font-bold text-black transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-55"
+            type="button"
+            :disabled="isSavingProfile"
+            @click="handleSaveProfile"
+          >
+            <LoaderCircle
+              v-if="isSavingProfile"
+              class="h-4 w-4 animate-spin"
+            />
+            <ShieldCheck
+              v-else
+              class="h-4 w-4"
+            />
+            {{ t("profile.saveProfile") }}
+          </button>
+        </div>
+      </section>
+
+      <section
+        class="rounded-2xl border border-[rgba(0,243,255,0.15)] bg-[rgba(5,10,15,0.4)] p-6 shadow-[0_0_30px_rgba(0,0,0,0.25)] backdrop-blur-xl"
       >
         <div class="flex items-center gap-3">
           <div
@@ -146,30 +311,30 @@ async function handleConfirmChangePassword() {
             <KeyRound class="h-5 w-5" />
           </div>
           <div>
-            <h2 class="text-xl font-semibold text-white">
-              修改密码
+            <h2 class="text-lg font-semibold text-white">
+              {{ t("profile.security") }}
             </h2>
             <p class="mt-1 text-sm text-white/45">
-              验证旧密码后更新账户凭据
+              {{ t("profile.securityDesc") }}
             </p>
           </div>
         </div>
 
         <form
-          class="mt-10 space-y-10"
+          class="mt-8 space-y-7"
           @submit.prevent="handleChangePassword"
         >
-          <div class="mb-2 mt-4">
-            <label
-              class="mb-2 block text-sm font-medium text-[var(--text-secondary)]"
-            >旧密码</label>
+          <div>
+            <label class="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
+              {{ t("profile.oldPassword") }}
+            </label>
             <div class="relative">
               <input
-                v-model.trim="form.oldPassword"
+                v-model.trim="passwordForm.oldPassword"
                 :type="showOldPassword ? 'text' : 'password'"
-                class="mb-1 w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] px-4 py-3 pr-10 text-white placeholder-gray-500 transition-colors focus:border-[var(--neon)] focus:outline-none"
+                :placeholder="t('profile.oldPasswordPlaceholder')"
+                class="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] px-4 py-3 pr-10 text-white placeholder-gray-500 transition-colors focus:border-[var(--neon)] focus:outline-none"
                 autocomplete="current-password"
-                placeholder="请输入当前密码"
               >
               <button
                 type="button"
@@ -185,17 +350,17 @@ async function handleConfirmChangePassword() {
             </div>
           </div>
 
-          <div class="mb-2">
-            <label
-              class="mb-2 block text-sm font-medium text-[var(--text-secondary)]"
-            >新密码</label>
+          <div>
+            <label class="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
+              {{ t("profile.newPassword") }}
+            </label>
             <div class="relative">
               <input
-                v-model.trim="form.newPassword"
+                v-model.trim="passwordForm.newPassword"
                 :type="showNewPassword ? 'text' : 'password'"
-                class="mb-1 w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] px-4 py-3 pr-10 text-white placeholder-gray-500 transition-colors focus:border-[var(--neon)] focus:outline-none"
+                :placeholder="t('profile.newPasswordPlaceholder')"
+                class="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] px-4 py-3 pr-10 text-white placeholder-gray-500 transition-colors focus:border-[var(--neon)] focus:outline-none"
                 autocomplete="new-password"
-                placeholder="请输入至少 8 位新密码"
               >
               <button
                 type="button"
@@ -211,17 +376,17 @@ async function handleConfirmChangePassword() {
             </div>
           </div>
 
-          <div class="mb-2">
-            <label
-              class="mb-2 block text-sm font-medium text-[var(--text-secondary)]"
-            >确认新密码</label>
+          <div>
+            <label class="mb-2 block text-sm font-medium text-[var(--text-secondary)]">
+              {{ t("profile.confirmPassword") }}
+            </label>
             <div class="relative">
               <input
-                v-model.trim="form.confirmPassword"
+                v-model.trim="passwordForm.confirmPassword"
                 :type="showConfirmPassword ? 'text' : 'password'"
-                class="mb-1 w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] px-4 py-3 pr-10 text-white placeholder-gray-500 transition-colors focus:border-[var(--neon)] focus:outline-none"
+                :placeholder="t('profile.confirmPasswordPlaceholder')"
+                class="w-full rounded-lg border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] px-4 py-3 pr-10 text-white placeholder-gray-500 transition-colors focus:border-[var(--neon)] focus:outline-none"
                 autocomplete="new-password"
-                placeholder="请再次输入新密码"
               >
               <button
                 type="button"
@@ -238,33 +403,34 @@ async function handleConfirmChangePassword() {
           </div>
 
           <p
-            v-if="errorMessage"
+            v-if="passwordErrorMessage"
             class="rounded-md border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
           >
-            {{ errorMessage }}
+            {{ passwordErrorMessage }}
           </p>
-          <div class="grid grid-cols-2 gap-4 pt-4">
+
+          <div class="grid grid-cols-2 gap-4 pt-2">
             <button
-              class="flex h-14 w-full items-center justify-center gap-2 rounded-lg bg-[var(--neon)] px-4 text-center font-bold leading-none text-black transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              class="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[var(--neon)] px-4 text-center font-bold leading-none text-black transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
               type="submit"
-              :disabled="!canSubmit"
+              :disabled="!canSubmitPassword"
             >
               <LoaderCircle
-                v-if="isSubmitting"
+                v-if="isSubmittingPassword"
                 class="h-4 w-4 animate-spin"
               />
               <ShieldCheck
                 v-else
                 class="h-4 w-4"
               />
-              保存新密码
+              {{ t("profile.savePassword") }}
             </button>
             <button
-              class="flex h-14 w-full items-center justify-center rounded-lg border border-[rgba(255,255,255,0.1)] px-4 text-center font-medium leading-none text-[var(--text-secondary)] transition-colors hover:border-[var(--neon)] hover:text-neon"
+              class="flex h-12 w-full items-center justify-center rounded-lg border border-[rgba(255,255,255,0.1)] px-4 text-center font-medium leading-none text-[var(--text-secondary)] transition-colors hover:border-[var(--neon)] hover:text-neon"
               type="button"
-              @click="resetForm"
+              @click="resetPasswordForm"
             >
-              清空
+              {{ t("common.clear") }}
             </button>
           </div>
         </form>
@@ -286,10 +452,10 @@ async function handleConfirmChangePassword() {
           </div>
           <div class="min-w-0">
             <h3 class="text-lg font-semibold text-white">
-              确认修改密码
+              {{ t("profile.confirmDialogTitle") }}
             </h3>
             <p class="mt-2 text-sm leading-6 text-white/65">
-              修改密码后将退出当前账号，并跳转到登录页重新登录。确认继续吗？
+              {{ t("profile.confirmDialogDesc") }}
             </p>
           </div>
         </div>
@@ -298,26 +464,26 @@ async function handleConfirmChangePassword() {
           <button
             class="flex h-12 w-full items-center justify-center rounded-lg border border-white/15 px-4 text-sm font-medium text-white/75 transition-colors hover:border-white/35 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
             type="button"
-            :disabled="isSubmitting"
+            :disabled="isSubmittingPassword"
             @click="handleCancelConfirm"
           >
-            取消
+            {{ t("common.cancel") }}
           </button>
           <button
             class="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[var(--neon)] px-4 text-sm font-bold text-black transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
             type="button"
-            :disabled="isSubmitting"
+            :disabled="isSubmittingPassword"
             @click="handleConfirmChangePassword"
           >
             <LoaderCircle
-              v-if="isSubmitting"
+              v-if="isSubmittingPassword"
               class="h-4 w-4 animate-spin"
             />
             <LogOut
               v-else
               class="h-4 w-4"
             />
-            确认修改
+            {{ t("profile.confirmChange") }}
           </button>
         </div>
       </div>

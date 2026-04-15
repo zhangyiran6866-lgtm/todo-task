@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/use-auth-store";
 
 const router = useRouter();
 const authStore = useAuthStore();
+const { t } = useI18n();
 
 const email = ref("");
 const password = ref("");
@@ -14,21 +16,21 @@ const showPassword = ref(false);
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
-    return error.message || "登录失败，请检查账号密码";
+    return error.message || t("auth.errLoginFailed");
   }
-  return "登录失败，请检查账号密码";
+  return t("auth.errLoginFailed");
 }
 
 const handleLogin = async () => {
   errorMsg.value = "";
   if (!email.value || !password.value) {
-    errorMsg.value = "邮箱和密码不能为空";
+    errorMsg.value = t("auth.errEmpty");
     return;
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email.value)) {
-    errorMsg.value = "邮箱格式不正确";
+    errorMsg.value = t("auth.errEmailInvalid");
     return;
   }
 
@@ -49,7 +51,7 @@ const handleLogin = async () => {
     class="w-full max-w-md p-8 rounded-2xl bg-[rgba(5,10,15,0.4)] backdrop-blur-xl border border-[rgba(0,243,255,0.15)] z-10 transition-all"
   >
     <h2 class="text-3xl font-bold text-center text-neon drop-shadow-neon mb-8">
-      任务系统
+      {{ t("auth.loginTitle") }}
     </h2>
 
     <form
@@ -60,13 +62,13 @@ const handleLogin = async () => {
       <div>
         <label
           class="block text-sm font-medium text-[var(--text-secondary)] mb-2"
-        >邮箱</label>
+        >{{ t("auth.email") }}</label>
         <div class="relative">
           <input
             v-model="email"
             type="email"
             class="w-full px-4 py-3 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--neon)] transition-colors pr-10"
-            placeholder="请输入您的电子邮箱"
+            :placeholder="t('auth.emailPlaceholder')"
           >
           <button
             v-if="email"
@@ -93,13 +95,13 @@ const handleLogin = async () => {
       <div>
         <label
           class="block text-sm font-medium text-[var(--text-secondary)] mb-2"
-        >密码</label>
+        >{{ t("auth.password") }}</label>
         <div class="relative">
           <input
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
             class="w-full px-4 py-3 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--neon)] transition-colors pr-10"
-            placeholder="请输入登录密码"
+            :placeholder="t('auth.passwordPlaceholder')"
           >
           <button
             type="button"
@@ -160,17 +162,17 @@ const handleLogin = async () => {
         :disabled="loading"
         class="w-full py-3 px-4 bg-[var(--neon)] text-black font-bold rounded-lg hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {{ loading ? "登录中..." : "登 录" }}
+        {{ loading ? t("auth.loggingIn") : t("auth.login") }}
       </button>
     </form>
 
     <div class="mt-6 text-center text-sm text-[var(--text-secondary)]">
-      还没有账号？
+      {{ t("auth.noAccount") }}
       <router-link
         to="/register"
         class="text-neon hover:underline"
       >
-        立即注册
+        {{ t("auth.toRegister") }}
       </router-link>
     </div>
   </div>

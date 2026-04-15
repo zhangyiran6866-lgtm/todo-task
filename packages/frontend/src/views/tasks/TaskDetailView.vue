@@ -9,7 +9,7 @@
         @click="router.back()"
       >
         <ArrowLeft class="w-5 h-5" />
-        <span class="text-sm font-medium">返回基站</span>
+        <span class="text-sm font-medium">{{ t("tasks.backToList") }}</span>
       </button>
     </header>
 
@@ -37,13 +37,13 @@
                 @change="save('status', task.status)"
               >
                 <option value="todo">
-                  待处理
+                  {{ t("tasks.statusTodo") }}
                 </option>
                 <option value="in_progress">
-                  计算中
+                  {{ t("tasks.statusInProgress") }}
                 </option>
                 <option value="done">
-                  已封存
+                  {{ t("tasks.statusDone") }}
                 </option>
               </select>
               <div
@@ -61,19 +61,19 @@
                 @change="save('priority', task.priority)"
               >
                 <option value="routine">
-                  日常任务
+                  {{ t("tasks.priorityRoutine") }}
                 </option>
                 <option value="critical">
-                  重要紧急
+                  {{ t("tasks.priorityCritical") }}
                 </option>
                 <option value="important">
-                  重要不紧急
+                  {{ t("tasks.priorityImportant") }}
                 </option>
                 <option value="urgent">
-                  紧急不重要
+                  {{ t("tasks.priorityUrgent") }}
                 </option>
                 <option value="low">
-                  不重要也不紧急
+                  {{ t("tasks.priorityLow") }}
                 </option>
               </select>
               <div
@@ -91,7 +91,7 @@
                   v-else-if="task.priority === 'urgent'"
                   class="w-4 h-4"
                 />
-                <span class="capitalize">{{ priorityText }} 标签</span>
+                <span class="capitalize">{{ priorityText }}</span>
               </div>
             </div>
           </div>
@@ -100,7 +100,7 @@
           <input
             v-model="task.title"
             class="w-full bg-transparent text-4xl font-light text-white outline-none border-b border-transparent focus:border-white/20 pb-2 transition-colors placeholder-white/20"
-            placeholder="输入进程代号..."
+            :placeholder="t('tasks.detailTitlePlaceholder')"
             @change="save('title', task.title)"
           >
         </div>
@@ -110,7 +110,7 @@
           <div class="relative flex items-center gap-2 group cursor-pointer">
             <Calendar class="w-4 h-4 group-hover:text-neon transition-colors" />
             <span class="group-hover:text-white transition-colors">
-              截止日期: {{ formattedDate || "未设置" }}
+              {{ t("tasks.dueDate") }}: {{ formattedDate || t("tasks.unset") }}
             </span>
             <input
               v-model="editedDueDate"
@@ -122,7 +122,7 @@
 
           <div class="flex items-center gap-2">
             <Clock class="w-4 h-4" />
-            <span>构造于:
+            <span>{{ t("tasks.createdAt") }}:
               {{ new Date(task.created_at).toLocaleDateString() }}</span>
           </div>
         </div>
@@ -132,7 +132,7 @@
           <textarea
             v-model="task.description"
             class="w-full h-full min-h-[200px] bg-transparent text-white/80 outline-none border border-transparent focus:border-white/10 rounded-xl p-4 transition-colors placeholder-white/20 resize-none leading-relaxed"
-            placeholder="输入全息事件描述..."
+            :placeholder="t('tasks.detailDescriptionPlaceholder')"
             @blur="save('description', task.description)"
           />
         </div>
@@ -144,7 +144,7 @@
             @click="confirmDelete"
           >
             <Trash2 class="w-4 h-4" />
-            <span>销毁节点</span>
+            <span>{{ t("tasks.delete") }}</span>
           </button>
         </div>
       </div>
@@ -153,7 +153,7 @@
         v-else
         class="text-white/40 text-center mt-20"
       >
-        404: 数据节点丢失或访问权限被抑制。
+        404: {{ t("tasks.notFound") }}
       </div>
     </main>
   </div>
@@ -162,6 +162,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { taskApi, type Task, type UpdateTaskReq } from "@/api/task";
 import { useTaskStore } from "@/stores/use-task-store";
 import {
@@ -176,6 +177,7 @@ import {
 const route = useRoute();
 const router = useRouter();
 const taskStore = useTaskStore();
+const { t } = useI18n();
 
 const taskId = route.params.id as string;
 const task = ref<Task | null>(null);
@@ -232,11 +234,11 @@ const statusText = computed(() => {
   if (!task.value) return "";
   switch (task.value.status) {
     case "done":
-      return "已封存";
+      return t("tasks.statusDone");
     case "in_progress":
-      return "计算中";
+      return t("tasks.statusInProgress");
     default:
-      return "待处理";
+      return t("tasks.statusTodo");
   }
 });
 
@@ -262,17 +264,17 @@ const priorityText = computed(() => {
   if (!task.value) return "";
   switch (task.value.priority) {
     case "critical":
-      return "重要紧急";
+      return t("tasks.priorityCritical");
     case "important":
-      return "重要不紧急";
+      return t("tasks.priorityImportant");
     case "urgent":
-      return "紧急不重要";
+      return t("tasks.priorityUrgent");
     case "low":
-      return "不重要也不紧急";
+      return t("tasks.priorityLow");
     case "routine":
-      return "日常任务";
+      return t("tasks.priorityRoutine");
     default:
-      return "未分类";
+      return t("tasks.priorityAll");
   }
 });
 
@@ -310,7 +312,7 @@ async function save(
 }
 
 async function confirmDelete() {
-  if (confirm("系统警告：永久销毁该数据节点的过程不可逆！是否确认清理？")) {
+  if (confirm(t("tasks.deleteConfirm"))) {
     try {
       await taskStore.deleteTask(taskId);
       router.back();

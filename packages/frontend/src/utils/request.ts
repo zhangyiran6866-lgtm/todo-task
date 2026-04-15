@@ -5,22 +5,56 @@ import type {
   AxiosResponse,
 } from "axios";
 import { useAuthStore } from "@/stores/use-auth-store";
+import { messages, type AppLanguage } from "@/locales/messages";
 import router from "@/router";
 
 // 应对刷新冲突
 let isRefreshing = false;
 let requestsQueue: Array<(token: string) => void> = [];
 
+function getCurrentLanguage(): AppLanguage {
+  const language = localStorage.getItem("language");
+  if (language === "en" || language === "zh") {
+    return language;
+  }
+  return "zh";
+}
+
+function translate(key: string): string {
+  const language = getCurrentLanguage();
+  const parts = key.split(".");
+
+  const resolve = (lang: AppLanguage) => {
+    let cursor: unknown = messages[lang];
+    for (const part of parts) {
+      if (typeof cursor !== "object" || cursor === null || !(part in cursor)) {
+        return "";
+      }
+      cursor = (cursor as Record<string, unknown>)[part];
+    }
+    return typeof cursor === "string" ? cursor : "";
+  };
+
+  return resolve(language) || resolve("zh") || key;
+}
+
 function getErrorMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const message = (error.response?.data as { message?: string } | undefined)
       ?.message;
-    return message || error.message || "请求失败，请稍后重试";
+    const rawMessage = message || error.message || translate("errors.requestFailed");
+    if (rawMessage === "No refresh token available") {
+      return translate("errors.noRefreshToken");
+    }
+    if (rawMessage === "Refresh token not found or expired") {
+      return translate("errors.refreshTokenExpired");
+    }
+    return rawMessage;
   }
   if (error instanceof Error) {
-    return error.message || "请求失败，请稍后重试";
+    return error.message || translate("errors.requestFailed");
   }
-  return "请求失败，请稍后重试";
+  return translate("errors.requestFailed");
 }
 
 const request: AxiosInstance = axios.create({
@@ -51,7 +85,9 @@ request.interceptors.response.use(
     // 我们的后端统一结构: { code: 0, message: "成功", data: {} }
     const res = response.data;
     if (res.code !== 0) {
-      return Promise.reject(new Error(res.message || "请求失败"));
+      return Promise.reject(
+        new Error(res.message || translate("errors.requestFailed")),
+      );
     }
     return res.data;
   },
@@ -99,7 +135,7 @@ request.interceptors.response.use(
 
       try {
         if (!authStore.refreshToken) {
-          throw new Error("登录状态已失效，请重新登录");
+          throw new Error(translate("errors.noRefreshToken"));
         }
 
         // 调用刷新接口
@@ -120,7 +156,7 @@ request.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
           return request(originalRequest);
         } else {
-          throw new Error("刷新登录状态失败，请重新登录");
+          throw new Error(translate("errors.refreshFailed"));
         }
       } catch (refreshError) {
         requestsQueue = [];

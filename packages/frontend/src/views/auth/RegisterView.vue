@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useAuthStore } from "@/stores/use-auth-store";
 
 const router = useRouter();
 const authStore = useAuthStore();
+const { t } = useI18n();
 
 const email = ref("");
 const password = ref("");
@@ -16,9 +18,9 @@ const showPassword = ref(false);
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
-    return error.message || "注册失败，请稍后重试";
+    return error.message || t("auth.errRegisterFailed");
   }
-  return "注册失败，请稍后重试";
+  return t("auth.errRegisterFailed");
 }
 
 const handleRegister = async () => {
@@ -26,18 +28,18 @@ const handleRegister = async () => {
   successMsg.value = "";
 
   if (!email.value || !password.value || !nickname.value) {
-    errorMsg.value = "请填写完整信息";
+    errorMsg.value = t("auth.errRegisterIncomplete");
     return;
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email.value)) {
-    errorMsg.value = "邮箱格式不正确";
+    errorMsg.value = t("auth.errEmailInvalid");
     return;
   }
 
   if (password.value.length < 8) {
-    errorMsg.value = "密码至少需要8个字符";
+    errorMsg.value = t("auth.errPasswordLength");
     return;
   }
 
@@ -53,7 +55,7 @@ const handleRegister = async () => {
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     // 显示霓虹风格的成功提示而不是原生弹窗
-    successMsg.value = "注册成功！即将为您跳转到登录页...";
+    successMsg.value = t("auth.registerSuccess");
 
     // 等待一小段时间后跳转至登录页
     setTimeout(() => {
@@ -72,7 +74,7 @@ const handleRegister = async () => {
     class="w-full max-w-md p-8 rounded-2xl bg-[rgba(5,10,15,0.4)] backdrop-blur-xl border border-[rgba(0,243,255,0.15)] z-10 transition-all"
   >
     <h2 class="text-3xl font-bold text-center text-neon drop-shadow-neon mb-8">
-      注册账号
+      {{ t("auth.registerTitle") }}
     </h2>
 
     <form
@@ -83,13 +85,13 @@ const handleRegister = async () => {
       <div>
         <label
           class="block text-sm font-medium text-[var(--text-secondary)] mb-2"
-        >昵称</label>
+        >{{ t("auth.nickname") }}</label>
         <div class="relative">
           <input
             v-model="nickname"
             type="text"
             class="w-full px-4 py-3 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--neon)] transition-colors pr-10"
-            placeholder="请输入您的昵称（例如：Cyberpunk）"
+            :placeholder="t('auth.nicknamePlaceholder')"
           >
           <button
             v-if="nickname"
@@ -116,13 +118,13 @@ const handleRegister = async () => {
       <div>
         <label
           class="block text-sm font-medium text-[var(--text-secondary)] mb-2"
-        >邮箱</label>
+        >{{ t("auth.email") }}</label>
         <div class="relative">
           <input
             v-model="email"
             type="email"
             class="w-full px-4 py-3 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--neon)] transition-colors pr-10"
-            placeholder="请输入正确的电子邮箱地址"
+            :placeholder="t('auth.registerEmailPlaceholder')"
           >
           <button
             v-if="email"
@@ -149,13 +151,13 @@ const handleRegister = async () => {
       <div>
         <label
           class="block text-sm font-medium text-[var(--text-secondary)] mb-2"
-        >密码</label>
+        >{{ t("auth.password") }}</label>
         <div class="relative">
           <input
             v-model="password"
             :type="showPassword ? 'text' : 'password'"
             class="w-full px-4 py-3 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-[var(--neon)] transition-colors pr-10"
-            placeholder="请输入至少8位包含字母和数字的密码"
+            :placeholder="t('auth.registerPasswordPlaceholder')"
           >
           <button
             type="button"
@@ -237,17 +239,17 @@ const handleRegister = async () => {
         :disabled="loading"
         class="w-full py-3 px-4 bg-[var(--neon)] text-black font-bold rounded-lg hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {{ loading ? "注册中..." : "注 册" }}
+        {{ loading ? t("auth.registering") : t("auth.register") }}
       </button>
     </form>
 
     <div class="mt-6 text-center text-sm text-[var(--text-secondary)]">
-      已有账号？
+      {{ t("auth.hasAccount") }}
       <router-link
         to="/login"
         class="text-neon hover:underline"
       >
-        立即登录
+        {{ t("auth.toLogin") }}
       </router-link>
     </div>
   </div>

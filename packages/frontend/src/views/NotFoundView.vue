@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -8,13 +11,13 @@
         404
       </h1>
       <p class="text-[var(--text-secondary)] mt-4">
-        页面不存在
+        {{ t("notFound.title") }}
       </p>
       <router-link
         to="/"
         class="mt-6 inline-block text-neon hover:shadow-neon transition-all"
       >
-        ← 返回首页
+        ← {{ t("notFound.backHome") }}
       </router-link>
     </div>
   </main>
