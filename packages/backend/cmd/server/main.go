@@ -14,13 +14,13 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.uber.org/zap"
 
-	"todotask/backend/pkg/config"
-	"todotask/backend/pkg/logger"
-	"todotask/backend/pkg/response"
 	"todotask/backend/internal/handler"
 	"todotask/backend/internal/middleware"
 	"todotask/backend/internal/repository"
 	"todotask/backend/internal/service"
+	"todotask/backend/pkg/config"
+	"todotask/backend/pkg/logger"
+	"todotask/backend/pkg/response"
 )
 
 // @title TodoTask API
@@ -140,6 +140,7 @@ func registerRoutes(r *gin.Engine, log *zap.Logger, db *mongo.Database, cfg *con
 		userRoutes.Use(middleware.JWTAuth(&cfg.JWT))
 		{
 			userRoutes.GET("/me", userHandler.GetMe)
+			userRoutes.PUT("/me/password", userHandler.ChangePassword)
 		}
 
 		taskRoutes := v1.Group("/tasks")

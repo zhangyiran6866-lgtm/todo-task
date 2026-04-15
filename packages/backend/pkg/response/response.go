@@ -14,11 +14,11 @@ type Response struct {
 }
 
 func OK(c *gin.Context, data interface{}) {
-	c.JSON(http.StatusOK, Response{Code: 0, Message: "success", Data: data})
+	c.JSON(http.StatusOK, Response{Code: 0, Message: "成功", Data: data})
 }
 
 func Created(c *gin.Context, data interface{}) {
-	c.JSON(http.StatusCreated, Response{Code: 0, Message: "created", Data: data})
+	c.JSON(http.StatusCreated, Response{Code: 0, Message: "创建成功", Data: data})
 }
 
 func BadRequest(c *gin.Context, msg string) {

@@ -17,14 +17,14 @@ func JWTAuth(cfg *config.JWTConfig) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			response.Unauthorized(c, "authorization header required")
+			response.Unauthorized(c, "缺少 Authorization 请求头")
 			c.Abort()
 			return
 		}
 
 		parts := strings.SplitN(authHeader, " ", 2)
 		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
-			response.Unauthorized(c, "invalid authorization header format")
+			response.Unauthorized(c, "Authorization 格式不正确")
 			c.Abort()
 			return
 		}
@@ -32,7 +32,7 @@ func JWTAuth(cfg *config.JWTConfig) gin.HandlerFunc {
 		tokenStr := parts[1]
 		claims, err := jwt.ParseToken(tokenStr, cfg.AccessSecret)
 		if err != nil {
-			response.Unauthorized(c, "invalid or expired access token")
+			response.Unauthorized(c, "访问令牌无效或已过期")
 			c.Abort()
 			return
 		}

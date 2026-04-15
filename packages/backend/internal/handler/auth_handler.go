@@ -34,18 +34,18 @@ func NewAuthHandler(svc service.AuthService, log *zap.Logger) *AuthHandler {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req service.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "invalid request parameters")
+		response.BadRequest(c, "请求参数不合法")
 		return
 	}
 
 	res, err := h.svc.Register(c.Request.Context(), &req)
 	if err != nil {
 		if errors.Is(err, service.ErrEmailConflict) {
-			response.Conflict(c, err.Error())
+			response.Conflict(c, "邮箱已被注册")
 			return
 		}
 		h.log.Error("register failed", zap.Error(err))
-		response.InternalError(c, "internal server error")
+		response.InternalError(c, "服务器内部错误")
 		return
 	}
 
@@ -67,18 +67,18 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req service.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "invalid request parameters")
+		response.BadRequest(c, "请求参数不合法")
 		return
 	}
 
 	res, err := h.svc.Login(c.Request.Context(), &req)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidLogin) {
-			response.Unauthorized(c, err.Error())
+			response.Unauthorized(c, "邮箱或密码错误")
 			return
 		}
 		h.log.Error("login failed", zap.Error(err))
-		response.InternalError(c, "internal server error")
+		response.InternalError(c, "服务器内部错误")
 		return
 	}
 
@@ -99,18 +99,18 @@ func (h *AuthHandler) Login(c *gin.Context) {
 func (h *AuthHandler) Refresh(c *gin.Context) {
 	var req service.RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "invalid refresh token")
+		response.BadRequest(c, "刷新令牌参数不合法")
 		return
 	}
 
 	res, err := h.svc.Refresh(c.Request.Context(), &req)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidToken) {
-			response.Unauthorized(c, err.Error())
+			response.Unauthorized(c, "刷新令牌无效或已过期")
 			return
 		}
 		h.log.Error("refresh failed", zap.Error(err))
-		response.InternalError(c, "internal server error")
+		response.InternalError(c, "服务器内部错误")
 		return
 	}
 
@@ -132,13 +132,13 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 func (h *AuthHandler) Logout(c *gin.Context) {
 	var req service.RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "invalid refresh token")
+		response.BadRequest(c, "刷新令牌参数不合法")
 		return
 	}
 
 	if err := h.svc.Logout(c.Request.Context(), &req); err != nil {
 		h.log.Error("logout failed", zap.Error(err))
-		response.InternalError(c, "internal server error")
+		response.InternalError(c, "服务器内部错误")
 		return
 	}
 

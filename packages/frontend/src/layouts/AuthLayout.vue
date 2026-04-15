@@ -26,7 +26,10 @@ const particleOptions = {
 
     <!-- 子页面内容区（带平滑过渡） -->
     <router-view v-slot="{ Component }">
-      <transition name="fade-transform" mode="out-in">
+      <transition
+        name="fade-transform"
+        mode="out-in"
+      >
         <component :is="Component" />
       </transition>
     </router-view>

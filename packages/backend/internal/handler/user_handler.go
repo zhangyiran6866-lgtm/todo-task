@@ -21,6 +21,30 @@ func NewUserHandler(svc service.UserService, log *zap.Logger) *UserHandler {
 	return &UserHandler{svc: svc, log: log}
 }
 
+func (h *UserHandler) getCurrentUserID(c *gin.Context) (bson.ObjectID, bool) {
+	userIdV, exists := c.Get(middleware.CtxUserIDKey)
+	if !exists {
+		response.Unauthorized(c, "用户未登录")
+		return bson.NilObjectID, false
+	}
+
+	idStr, ok := userIdV.(string)
+	if !ok {
+		h.log.Error("invalid user_id type in context", zap.Any("type", userIdV))
+		response.InternalError(c, "服务器内部错误")
+		return bson.NilObjectID, false
+	}
+
+	id, err := bson.ObjectIDFromHex(idStr)
+	if err != nil {
+		h.log.Error("invalid user_id format in context", zap.String("id", idStr), zap.Error(err))
+		response.InternalError(c, "服务器内部错误")
+		return bson.NilObjectID, false
+	}
+
+	return id, true
+}
+
 // GetMe godoc
 // @Summary 获取当前用户个人信息
 // @Description Retrieve the currently authenticated user's profile
@@ -34,36 +58,68 @@ func NewUserHandler(svc service.UserService, log *zap.Logger) *UserHandler {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /users/me [get]
 func (h *UserHandler) GetMe(c *gin.Context) {
-	userIdV, exists := c.Get(middleware.CtxUserIDKey)
-	if !exists {
-		response.Unauthorized(c, "user not authenticated")
-		return
-	}
-	
-	idStr, ok := userIdV.(string)
+	id, ok := h.getCurrentUserID(c)
 	if !ok {
-		h.log.Error("invalid user_id type in context", zap.Any("type", userIdV))
-		response.InternalError(c, "internal server error")
-		return
-	}
-
-	id, err := bson.ObjectIDFromHex(idStr)
-	if err != nil {
-		h.log.Error("invalid user_id format in context", zap.String("id", idStr), zap.Error(err))
-		response.InternalError(c, "internal server error")
 		return
 	}
 
 	user, err := h.svc.GetByID(c.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
-			response.NotFound(c, "user not found")
+			response.NotFound(c, "用户不存在")
 			return
 		}
 		h.log.Error("get me failed", zap.Error(err))
-		response.InternalError(c, "internal server error")
+		response.InternalError(c, "服务器内部错误")
 		return
 	}
 
 	response.OK(c, user)
+}
+
+// ChangePassword godoc
+// @Summary 修改当前用户密码
+// @Description Change the authenticated user's password after verifying old password
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body service.ChangePasswordRequest true "Password change payload"
+// @Success 200 {object} response.Response "Successfully changed password"
+// @Failure 400 {object} response.Response "Invalid request parameters"
+// @Failure 401 {object} response.Response "Invalid old password"
+// @Failure 404 {object} response.Response "User not found"
+// @Failure 500 {object} response.Response "Internal server error"
+// @Router /users/me/password [put]
+func (h *UserHandler) ChangePassword(c *gin.Context) {
+	id, ok := h.getCurrentUserID(c)
+	if !ok {
+		return
+	}
+
+	var req service.ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "请求参数不合法")
+		return
+	}
+
+	if err := h.svc.ChangePassword(c.Request.Context(), id, &req); err != nil {
+		if errors.Is(err, service.ErrInvalidPassword) {
+			response.Unauthorized(c, "旧密码错误")
+			return
+		}
+		if errors.Is(err, service.ErrPasswordSame) {
+			response.BadRequest(c, "新密码不能与旧密码相同")
+			return
+		}
+		if errors.Is(err, repository.ErrUserNotFound) {
+			response.NotFound(c, "用户不存在")
+			return
+		}
+		h.log.Error("change password failed", zap.Error(err))
+		response.InternalError(c, "服务器内部错误")
+		return
+	}
+
+	response.OK(c, nil)
 }

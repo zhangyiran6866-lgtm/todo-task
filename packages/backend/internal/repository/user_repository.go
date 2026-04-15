@@ -3,11 +3,12 @@ package repository
 import (
 	"context"
 	"errors"
+	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
-	
+
 	"todotask/backend/internal/model"
 )
 
@@ -21,6 +22,7 @@ type UserRepository interface {
 	FindByEmail(ctx context.Context, email string) (*model.User, error)
 	FindByID(ctx context.Context, id bson.ObjectID) (*model.User, error)
 	Update(ctx context.Context, user *model.User) error
+	UpdatePassword(ctx context.Context, id bson.ObjectID, password string, updatedAt time.Time) error
 }
 
 type userRepository struct {
@@ -96,4 +98,29 @@ func (r *userRepository) Update(ctx context.Context, user *model.User) error {
 	update := bson.D{{Key: "$set", Value: user}}
 	_, err := r.col.UpdateOne(ctx, filter, update)
 	return err
+}
+
+func (r *userRepository) UpdatePassword(ctx context.Context, id bson.ObjectID, password string, updatedAt time.Time) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	filter := bson.D{
+		{Key: "_id", Value: id},
+		{Key: "is_deleted", Value: bson.D{{Key: "$ne", Value: true}}},
+	}
+	update := bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "password", Value: password},
+			{Key: "updated_at", Value: updatedAt},
+		}},
+	}
+
+	res, err := r.col.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	if res.MatchedCount == 0 {
+		return ErrUserNotFound
+	}
+	return nil
 }

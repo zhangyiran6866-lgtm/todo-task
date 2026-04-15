@@ -26,7 +26,7 @@ func NewTaskHandler(svc service.TaskService, logger *zap.Logger) *TaskHandler {
 func (h *TaskHandler) getUID(c *gin.Context) (string, bool) {
 	uid, exists := c.Get("user_id")
 	if !exists {
-		response.Unauthorized(c, "unauthorized")
+		response.Unauthorized(c, "用户未登录")
 		return "", false
 	}
 	return uid.(string), true
@@ -54,14 +54,14 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 	var req service.CreateTaskReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.logger.Warn("create task bind error", zap.Error(err))
-		response.BadRequest(c, "invalid parameters")
+		response.BadRequest(c, "请求参数不合法")
 		return
 	}
 
 	task, err := h.svc.CreateTask(c.Request.Context(), uid, &req)
 	if err != nil {
 		h.logger.Error("create task failed", zap.Error(err))
-		response.InternalError(c, "failed to create task")
+		response.InternalError(c, "创建任务失败")
 		return
 	}
 
@@ -92,14 +92,14 @@ func (h *TaskHandler) ListTasks(c *gin.Context) {
 
 	var req service.ListTasksReq
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "invalid query parameters")
+		response.BadRequest(c, "查询参数不合法")
 		return
 	}
 
 	resp, err := h.svc.ListTasks(c.Request.Context(), uid, &req)
 	if err != nil {
 		h.logger.Error("list tasks failed", zap.Error(err))
-		response.InternalError(c, "failed to fetch tasks")
+		response.InternalError(c, "获取任务列表失败")
 		return
 	}
 
@@ -129,26 +129,26 @@ func (h *TaskHandler) GetTask(c *gin.Context) {
 
 	taskID := c.Param("id")
 	if taskID == "" {
-		response.BadRequest(c, "task id is required")
+		response.BadRequest(c, "任务 ID 不能为空")
 		return
 	}
 
 	task, err := h.svc.GetTask(c.Request.Context(), uid, taskID)
 	if err != nil {
 		if errors.Is(err, repository.ErrTaskNotFound) {
-			response.NotFound(c, "task not found")
+			response.NotFound(c, "任务不存在")
 			return
 		}
 		if errors.Is(err, service.ErrForbidden) {
-			response.Forbidden(c, "you don't have permission to access this task")
+			response.Forbidden(c, "无权限访问该任务")
 			return
 		}
 		if err.Error() == "invalid task id" {
-			response.BadRequest(c, "invalid task id format")
+			response.BadRequest(c, "任务 ID 格式不正确")
 			return
 		}
 		h.logger.Error("get task failed", zap.Error(err))
-		response.InternalError(c, "failed to get task")
+		response.InternalError(c, "获取任务失败")
 		return
 	}
 
@@ -179,33 +179,33 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 
 	taskID := c.Param("id")
 	if taskID == "" {
-		response.BadRequest(c, "task id is required")
+		response.BadRequest(c, "任务 ID 不能为空")
 		return
 	}
 
 	var req service.UpdateTaskReq
 	if err := c.ShouldBindJSON(&req); err != nil {
 		h.logger.Warn("update task bind error", zap.Error(err))
-		response.BadRequest(c, "invalid parameters")
+		response.BadRequest(c, "请求参数不合法")
 		return
 	}
 
 	err := h.svc.UpdateTask(c.Request.Context(), uid, taskID, &req)
 	if err != nil {
 		if errors.Is(err, repository.ErrTaskNotFound) {
-			response.NotFound(c, "task not found")
+			response.NotFound(c, "任务不存在")
 			return
 		}
 		if errors.Is(err, service.ErrForbidden) {
-			response.Forbidden(c, "you don't have permission to update this task")
+			response.Forbidden(c, "无权限更新该任务")
 			return
 		}
 		if err.Error() == "invalid task id" {
-			response.BadRequest(c, "invalid task id format")
+			response.BadRequest(c, "任务 ID 格式不正确")
 			return
 		}
 		h.logger.Error("update task failed", zap.Error(err))
-		response.InternalError(c, "failed to update task")
+		response.InternalError(c, "更新任务失败")
 		return
 	}
 
@@ -235,26 +235,26 @@ func (h *TaskHandler) DeleteTask(c *gin.Context) {
 
 	taskID := c.Param("id")
 	if taskID == "" {
-		response.BadRequest(c, "task id is required")
+		response.BadRequest(c, "任务 ID 不能为空")
 		return
 	}
 
 	err := h.svc.DeleteTask(c.Request.Context(), uid, taskID)
 	if err != nil {
 		if errors.Is(err, repository.ErrTaskNotFound) {
-			response.NotFound(c, "task not found")
+			response.NotFound(c, "任务不存在")
 			return
 		}
 		if errors.Is(err, service.ErrForbidden) {
-			response.Forbidden(c, "you don't have permission to delete this task")
+			response.Forbidden(c, "无权限删除该任务")
 			return
 		}
 		if err.Error() == "invalid task id" {
-			response.BadRequest(c, "invalid task id format")
+			response.BadRequest(c, "任务 ID 格式不正确")
 			return
 		}
 		h.logger.Error("delete task failed", zap.Error(err))
-		response.InternalError(c, "failed to delete task")
+		response.InternalError(c, "删除任务失败")
 		return
 	}
 
