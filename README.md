@@ -36,6 +36,7 @@ TodoTask 是一个面向个人用户的**全栈任务管理系统**，采用 Tec
 todotask/
 ├── .nvmrc                    # Node 版本锁定（v20.10.0）
 ├── docker-compose.yml        # 本地容器编排
+├── auth/                     # 本地敏感信息（已 gitignore，不提交）
 ├── packages/
 │   ├── backend/              # Go 后端服务
 │   │   ├── cmd/server/       # 程序入口
@@ -51,7 +52,7 @@ todotask/
 ├── docs/                     # 项目文档
 ├── agent/                    # AI 编码规范（Skill 文件）
 ├── mcp/                      # MCP 工具集（如 apifox-backend）
-└── scripts/                  # 数据备份 & 恢复脚本
+└── scripts/                  # 数据备份 & 恢复脚本（Phase 5 待创建）
 ```
 
 ## 🚀 快速开始
@@ -105,8 +106,10 @@ docker-compose up -d
 | `pnpm build:frontend` | 构建前端生产包 |
 | `pnpm docker:up` | 启动所有容器 |
 | `pnpm docker:down` | 停止所有容器 |
-| `pnpm backup` | 备份 MongoDB 数据 |
-| `pnpm restore` | 恢复 MongoDB 数据 |
+| `pnpm backup` | 备份 MongoDB 数据（Phase 5 待实现） |
+| `pnpm restore` | 恢复 MongoDB 数据（Phase 5 待实现） |
+
+> 注意：`scripts/backup.js` 与 `scripts/restore.js` 尚未创建，备份/恢复命令会在 Phase 5 完成后可用。
 
 ## 🎨 UI 主题
 
@@ -129,6 +132,11 @@ docker-compose up -d
 | [数据库设计](docs/database-design.md) | MongoDB 集合设计 |
 | [前端 PRD](docs/frontend-prd.md) | 页面与功能规范 |
 | [测试文档](docs/testing.md) | 自动化测试规范 |
+| [Apifox MCP](mcp/apifox-backend/README.md) | 后端接口文档同步工具 |
+
+## 🔐 本地敏感信息
+
+本项目使用根目录 `auth/` 保存本机 token、账号、API Key 等敏感信息，例如 `auth/apifox.md`。该目录已加入 `.gitignore`，不要提交到远端仓库。
 
 ## 🤝 贡献指南
 

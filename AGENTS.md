@@ -16,7 +16,8 @@
 | 包管理器 | **pnpm**（禁止 npm / yarn） |
 | Node 版本 | `v20.10.0`（通过 nvm 锁定，根目录已配置 `.nvmrc`） |
 | 核心功能 | 用户注册/登录（JWT）、任务 CRUD、多语言、主题色 |
-| 工具脚本 | Node.js 脚本实现 MongoDB **数据自动化备份与恢复** |
+| 当前阶段 | Phase 5（测试与上线）进行中；Phase 0-4 已完成 |
+| 工具脚本 | MongoDB **数据自动化备份与恢复**脚本待实现（Phase 5） |
 
 > ⚠️ **大纲约束**：所有设计与开发必须以 [`docs/baseline.md`](./docs/baseline.md) 为最高权威，不得擅自偏离。
 
@@ -30,10 +31,11 @@ todotask/
 ├── .nvmrc                       ← Node.js 版本锁定（v20.10.0）
 ├── package.json                 ← Monorepo 根配置（pnpm workspaces）
 ├── pnpm-workspace.yaml          ← workspace 声明
-├── scripts/                     ← Node.js 工具脚本【待创建】
-│   ├── backup.js                ← MongoDB 数据自动化备份
-│   └── restore.js               ← MongoDB 数据恢复
-├── docker-compose.yml           ← 本地开发容器编排【待创建】
+├── auth/                        ← 本地敏感信息目录【已 gitignore，禁止提交】
+├── scripts/                     ← Node.js 工具脚本【Phase 5 待创建】
+│   ├── backup.js                ← MongoDB 数据自动化备份【待创建】
+│   └── restore.js               ← MongoDB 数据恢复【待创建】
+├── docker-compose.yml           ← 本地开发容器编排
 ├── .gitignore
 │
 ├── docs/                        ← 项目文档（设计规范 & 进度）
@@ -55,8 +57,8 @@ todotask/
 │   ├── frontend/ui-skill.md     ← UI/UX & 动画规范
 │   └── git/skill.md             ← Git 提交规范
 │
-└── packages/                    ← 业务代码【Phase 0 已完成】
-    ├── backend/                 ← Go 后端服务【待初始化】
+└── packages/                    ← 业务代码
+    ├── backend/                 ← Go 后端服务
     │   ├── cmd/server/main.go
     │   ├── internal/handler/
     │   ├── internal/service/
@@ -67,14 +69,14 @@ todotask/
     │   ├── pkg/logger/
     │   ├── pkg/response/
     │   └── configs/config.yaml
-    └── frontend/                ← Vue3 前端应用【待初始化】
+    └── frontend/                ← Vue3 前端应用
         ├── src/
         ├── index.html
         └── vite.config.ts
 ```
 
-> ⚠️ **当前阶段**：Phase 0（工程初始化）尚未完成，`packages/` 目录不存在。
-> 详细进度见 [`docs/dev-phases.md`](./docs/dev-phases.md)
+> ⚠️ **当前阶段**：Phase 5（测试与上线）进行中，Phase 0-4 已完成。
+> 详细进度见 [`docs/dev-phases.md`](./docs/dev-phases.md)。当前未完成重点包括自动化测试、MongoDB 备份/恢复脚本、生产部署配置与 README 持续维护。
 
 ---
 
@@ -248,5 +250,11 @@ todotask/
 
 - **命名与结构规范**：每个 MCP 必须以独立的文件夹存放，文件夹命名依据其功能属性（例如 `apifox-backend`）。具体的 MCP 服务代码、依赖文件和配置参数均**只能**存放于其对应命名的子文件夹内。
 - **使用要求**：视具体开发阶段按需调用和激活。
-- **当前状态**：项目中已引入 `apifox-backend` 节点 MCP 服务用于后端 API 文档的自动化同步，**注意：在 Phase 2（任务 CRUD）开发阶段完成之前，不得擅自使用或激活该 MCP**，需等到 Phase 2 完成并验证通过后才能启用此扩展进行 API 调试与推送。
+- **当前状态**：项目中已引入 `apifox-backend` 节点 MCP 服务用于后端 API 文档的自动化同步。Phase 2 已完成，允许在确有 API 文档同步/调试需求时按需启用；未涉及 API 文档任务时不要擅自激活。
+- **工具说明**：使用前先阅读 [`mcp/apifox-backend/README.md`](./mcp/apifox-backend/README.md)，确认构建命令、工具参数和同步流程。
 
+## 十三、本地敏感信息规范
+
+- 根目录 `auth/` 仅用于本机保存 token、账号、API Key 等敏感信息，已通过 `.gitignore` 排除，**禁止提交到远端仓库**。
+- Apifox 凭据建议存放在 `auth/apifox.md`，字段包括 Project ID 与 Personal Access Token。
+- MCP 源码、项目文档和提交记录中不得写入真实 token；如发生泄露，应立即在对应平台吊销并重新生成。

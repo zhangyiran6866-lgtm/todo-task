@@ -36,6 +36,7 @@ TodoTask is a **full-stack personal task management system** built with an immer
 todotask/
 ├── .nvmrc                    # Node version lock (v20.10.0)
 ├── docker-compose.yml        # Local container orchestration
+├── auth/                     # Local secrets (gitignored, do not commit)
 ├── packages/
 │   ├── backend/              # Go backend service
 │   │   ├── cmd/server/       # Application entry point
@@ -51,7 +52,7 @@ todotask/
 ├── docs/                     # Project documentation
 ├── agent/                    # AI coding standards (Skill files)
 ├── mcp/                      # MCP tools (e.g., apifox-backend)
-└── scripts/                  # Data backup & restore scripts
+└── scripts/                  # Data backup & restore scripts (Phase 5 pending)
 ```
 
 ## 🚀 Getting Started
@@ -105,8 +106,10 @@ docker-compose up -d
 | `pnpm build:frontend` | Build frontend for production |
 | `pnpm docker:up` | Start all containers |
 | `pnpm docker:down` | Stop all containers |
-| `pnpm backup` | Backup MongoDB data |
-| `pnpm restore` | Restore MongoDB data |
+| `pnpm backup` | Backup MongoDB data (Phase 5 pending) |
+| `pnpm restore` | Restore MongoDB data (Phase 5 pending) |
+
+> Note: `scripts/backup.js` and `scripts/restore.js` have not been created yet. The backup/restore commands will be available after Phase 5 is completed.
 
 ## 🎨 Themes
 
@@ -129,6 +132,11 @@ docker-compose up -d
 | [Database Design](docs/database-design.md) | MongoDB schema design |
 | [Frontend PRD](docs/frontend-prd.md) | Page & feature specifications |
 | [Testing Guide](docs/testing.md) | Automated testing standards |
+| [Apifox MCP](mcp/apifox-backend/README.md) | Backend API documentation sync tool |
+
+## 🔐 Local Secrets
+
+Use the root `auth/` directory for local-only tokens, accounts, API keys, and similar secrets, such as `auth/apifox.md`. This directory is ignored by `.gitignore`; do not commit it to the remote repository.
 
 ## 🤝 Contributing
 
