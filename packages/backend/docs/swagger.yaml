@@ -39,6 +39,17 @@ definitions:
       updated_at:
         type: string
     type: object
+  todotask_backend_internal_service.ChangePasswordRequest:
+    properties:
+      new_password:
+        minLength: 8
+        type: string
+      old_password:
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
   todotask_backend_internal_service.CreateTaskReq:
     properties:
       description:
@@ -533,6 +544,46 @@ paths:
       security:
       - BearerAuth: []
       summary: 获取当前用户个人信息
+      tags:
+      - Users
+  /users/me/password:
+    put:
+      consumes:
+      - application/json
+      description: Change the authenticated user's password after verifying old password
+      parameters:
+      - description: Password change payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/todotask_backend_internal_service.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully changed password
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "401":
+          description: Invalid old password
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 修改当前用户密码
       tags:
       - Users
 securityDefinitions:

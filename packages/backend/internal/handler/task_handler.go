@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	_ "todotask/backend/internal/model"
 	"todotask/backend/internal/repository"
 	"todotask/backend/internal/service"
 	"todotask/backend/pkg/response"

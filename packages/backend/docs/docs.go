@@ -678,6 +678,69 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/users/me/password": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Change the authenticated user's password after verifying old password",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "修改当前用户密码",
+                "parameters": [
+                    {
+                        "description": "Password change payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_internal_service.ChangePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully changed password",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid old password",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -737,6 +800,22 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "todotask_backend_internal_service.ChangePasswordRequest": {
+            "type": "object",
+            "required": [
+                "new_password",
+                "old_password"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "old_password": {
                     "type": "string"
                 }
             }

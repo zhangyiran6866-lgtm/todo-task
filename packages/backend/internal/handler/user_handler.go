@@ -2,11 +2,13 @@ package handler
 
 import (
 	"errors"
+
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.uber.org/zap"
 
 	"todotask/backend/internal/middleware"
+	_ "todotask/backend/internal/model"
 	"todotask/backend/internal/repository"
 	"todotask/backend/internal/service"
 	"todotask/backend/pkg/response"
