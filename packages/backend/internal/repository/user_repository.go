@@ -21,7 +21,7 @@ type UserRepository interface {
 	Create(ctx context.Context, user *model.User) error
 	FindByEmail(ctx context.Context, email string) (*model.User, error)
 	FindByID(ctx context.Context, id bson.ObjectID) (*model.User, error)
-	Update(ctx context.Context, user *model.User) error
+	UpdateByID(ctx context.Context, id bson.ObjectID, update bson.M) error
 	UpdatePassword(ctx context.Context, id bson.ObjectID, password string, updatedAt time.Time) error
 }
 
@@ -33,13 +33,17 @@ func NewUserRepository(db *mongo.Database) UserRepository {
 	col := db.Collection("users")
 
 	// Email 唯一索引
-	col.Indexes().CreateOne(context.Background(), mongo.IndexModel{
+	idxCtx, idxCancel := withDBTimeout(context.Background())
+	defer idxCancel()
+	col.Indexes().CreateOne(idxCtx, mongo.IndexModel{
 		Keys:    bson.D{{Key: "email", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	})
 
 	// created_at 倒序索引
-	col.Indexes().CreateOne(context.Background(), mongo.IndexModel{
+	idxCtx2, idxCancel2 := withDBTimeout(context.Background())
+	defer idxCancel2()
+	col.Indexes().CreateOne(idxCtx2, mongo.IndexModel{
 		Keys: bson.D{{Key: "created_at", Value: -1}},
 	})
 
@@ -47,6 +51,9 @@ func NewUserRepository(db *mongo.Database) UserRepository {
 }
 
 func (r *userRepository) Create(ctx context.Context, user *model.User) error {
+	ctx, cancel := withDBTimeout(ctx)
+	defer cancel()
+
 	res, err := r.col.InsertOne(ctx, user)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
@@ -62,6 +69,9 @@ func (r *userRepository) Create(ctx context.Context, user *model.User) error {
 }
 
 func (r *userRepository) FindByEmail(ctx context.Context, email string) (*model.User, error) {
+	ctx, cancel := withDBTimeout(ctx)
+	defer cancel()
+
 	var user model.User
 	filter := bson.D{
 		{Key: "email", Value: email},
@@ -78,6 +88,9 @@ func (r *userRepository) FindByEmail(ctx context.Context, email string) (*model.
 }
 
 func (r *userRepository) FindByID(ctx context.Context, id bson.ObjectID) (*model.User, error) {
+	ctx, cancel := withDBTimeout(ctx)
+	defer cancel()
+
 	var user model.User
 	filter := bson.D{
 		{Key: "_id", Value: id},
@@ -93,15 +106,27 @@ func (r *userRepository) FindByID(ctx context.Context, id bson.ObjectID) (*model
 	return &user, nil
 }
 
-func (r *userRepository) Update(ctx context.Context, user *model.User) error {
-	filter := bson.D{{Key: "_id", Value: user.ID}}
-	update := bson.D{{Key: "$set", Value: user}}
-	_, err := r.col.UpdateOne(ctx, filter, update)
-	return err
+func (r *userRepository) UpdateByID(ctx context.Context, id bson.ObjectID, update bson.M) error {
+	ctx, cancel := withDBTimeout(ctx)
+	defer cancel()
+
+	filter := bson.D{
+		{Key: "_id", Value: id},
+		{Key: "is_deleted", Value: bson.D{{Key: "$ne", Value: true}}},
+	}
+
+	res, err := r.col.UpdateOne(ctx, filter, bson.D{{Key: "$set", Value: update}})
+	if err != nil {
+		return err
+	}
+	if res.MatchedCount == 0 {
+		return ErrUserNotFound
+	}
+	return nil
 }
 
 func (r *userRepository) UpdatePassword(ctx context.Context, id bson.ObjectID, password string, updatedAt time.Time) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	ctx, cancel := withDBTimeout(ctx)
 	defer cancel()
 
 	filter := bson.D{

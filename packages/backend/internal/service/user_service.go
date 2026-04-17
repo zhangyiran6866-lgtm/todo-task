@@ -15,6 +15,7 @@ import (
 var (
 	ErrInvalidPassword = errors.New("invalid password")
 	ErrPasswordSame    = errors.New("new password must be different from old password")
+	ErrEmptyProfile    = errors.New("at least one profile field is required")
 )
 
 type ChangePasswordRequest struct {
@@ -22,8 +23,15 @@ type ChangePasswordRequest struct {
 	NewPassword string `json:"new_password" binding:"required,min=8"`
 }
 
+type UpdateProfileRequest struct {
+	Nickname string `json:"nickname" binding:"omitempty,min=1,max=30"`
+	Language string `json:"language" binding:"omitempty,oneof=zh en"`
+	Theme    string `json:"theme" binding:"omitempty,oneof=cyan purple green pink"`
+}
+
 type UserService interface {
 	GetByID(ctx context.Context, id bson.ObjectID) (*model.User, error)
+	UpdateProfile(ctx context.Context, id bson.ObjectID, req *UpdateProfileRequest) (*model.User, error)
 	ChangePassword(ctx context.Context, id bson.ObjectID, req *ChangePasswordRequest) error
 }
 
@@ -36,6 +44,32 @@ func NewUserService(repo repository.UserRepository) UserService {
 }
 
 func (s *userService) GetByID(ctx context.Context, id bson.ObjectID) (*model.User, error) {
+	return s.repo.FindByID(ctx, id)
+}
+
+func (s *userService) UpdateProfile(ctx context.Context, id bson.ObjectID, req *UpdateProfileRequest) (*model.User, error) {
+	update := bson.M{
+		"updated_at": time.Now(),
+	}
+
+	if req.Nickname != "" {
+		update["nickname"] = req.Nickname
+	}
+	if req.Language != "" {
+		update["language"] = req.Language
+	}
+	if req.Theme != "" {
+		update["theme"] = req.Theme
+	}
+
+	if len(update) == 1 {
+		return nil, ErrEmptyProfile
+	}
+
+	if err := s.repo.UpdateByID(ctx, id, update); err != nil {
+		return nil, err
+	}
+
 	return s.repo.FindByID(ctx, id)
 }
 

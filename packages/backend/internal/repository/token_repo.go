@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
-	
+
 	"todotask/backend/internal/model"
 )
 
@@ -25,13 +25,17 @@ func NewTokenRepository(db *mongo.Database) TokenRepository {
 	col := db.Collection("token_blacklist")
 
 	// Token 唯一索引
-	col.Indexes().CreateOne(context.Background(), mongo.IndexModel{
+	idxCtx, idxCancel := withDBTimeout(context.Background())
+	defer idxCancel()
+	col.Indexes().CreateOne(idxCtx, mongo.IndexModel{
 		Keys:    bson.D{{Key: "token", Value: 1}},
 		Options: options.Index().SetUnique(true),
 	})
 
 	// TTL 索引，自动清理过期 Token (ExpireAfterSeconds=0 配合 Date 类型)
-	col.Indexes().CreateOne(context.Background(), mongo.IndexModel{
+	idxCtx2, idxCancel2 := withDBTimeout(context.Background())
+	defer idxCancel2()
+	col.Indexes().CreateOne(idxCtx2, mongo.IndexModel{
 		Keys:    bson.D{{Key: "expired_at", Value: 1}},
 		Options: options.Index().SetExpireAfterSeconds(0),
 	})
@@ -40,6 +44,9 @@ func NewTokenRepository(db *mongo.Database) TokenRepository {
 }
 
 func (r *tokenRepository) AddToBlacklist(ctx context.Context, token string, expiredAt time.Time) error {
+	ctx, cancel := withDBTimeout(ctx)
+	defer cancel()
+
 	doc := model.TokenBlacklist{
 		ID:        bson.NewObjectID(),
 		Token:     token,
@@ -54,6 +61,9 @@ func (r *tokenRepository) AddToBlacklist(ctx context.Context, token string, expi
 }
 
 func (r *tokenRepository) IsBlacklisted(ctx context.Context, token string) (bool, error) {
+	ctx, cancel := withDBTimeout(ctx)
+	defer cancel()
+
 	filter := bson.D{{Key: "token", Value: token}}
 	err := r.col.FindOne(ctx, filter).Err()
 	if err != nil {

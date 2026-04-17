@@ -140,6 +140,7 @@ func registerRoutes(r *gin.Engine, log *zap.Logger, db *mongo.Database, cfg *con
 		userRoutes.Use(middleware.JWTAuth(&cfg.JWT))
 		{
 			userRoutes.GET("/me", userHandler.GetMe)
+			userRoutes.PATCH("/me", userHandler.UpdateMe)
 			userRoutes.PUT("/me/password", userHandler.ChangePassword)
 		}
 

@@ -79,6 +79,50 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 	response.OK(c, user)
 }
 
+// UpdateMe godoc
+// @Summary 更新当前用户信息
+// @Description Update the authenticated user's profile fields
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body service.UpdateProfileRequest true "Profile update payload"
+// @Success 200 {object} response.Response{data=model.User} "Successfully updated user profile"
+// @Failure 400 {object} response.Response "Invalid request parameters"
+// @Failure 401 {object} response.Response "Unauthorized"
+// @Failure 404 {object} response.Response "User not found"
+// @Failure 500 {object} response.Response "Internal server error"
+// @Router /users/me [patch]
+func (h *UserHandler) UpdateMe(c *gin.Context) {
+	id, ok := h.getCurrentUserID(c)
+	if !ok {
+		return
+	}
+
+	var req service.UpdateProfileRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "请求参数不合法")
+		return
+	}
+
+	user, err := h.svc.UpdateProfile(c.Request.Context(), id, &req)
+	if err != nil {
+		if errors.Is(err, service.ErrEmptyProfile) {
+			response.BadRequest(c, "至少需要更新一个字段")
+			return
+		}
+		if errors.Is(err, repository.ErrUserNotFound) {
+			response.NotFound(c, "用户不存在")
+			return
+		}
+		h.log.Error("update me failed", zap.Error(err))
+		response.InternalError(c, "服务器内部错误")
+		return
+	}
+
+	response.OK(c, user)
+}
+
 // ChangePassword godoc
 // @Summary 修改当前用户密码
 // @Description Change the authenticated user's password after verifying old password

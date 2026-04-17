@@ -35,6 +35,9 @@ func NewTaskRepository(db *mongo.Database) TaskRepository {
 }
 
 func (r *taskRepository) InsertOne(ctx context.Context, task *model.Task) error {
+	ctx, cancel := withDBTimeout(ctx)
+	defer cancel()
+
 	res, err := r.collection.InsertOne(ctx, task)
 	if err != nil {
 		return err
@@ -46,6 +49,9 @@ func (r *taskRepository) InsertOne(ctx context.Context, task *model.Task) error 
 }
 
 func (r *taskRepository) FindMany(ctx context.Context, filter bson.D, limit int64) ([]*model.Task, error) {
+	ctx, cancel := withDBTimeout(ctx)
+	defer cancel()
+
 	// 游标分页排序规范：先按 created_at DESC，再按 _id DESC 兜底
 	opts := options.Find().
 		SetSort(bson.D{{Key: "created_at", Value: -1}, {Key: "_id", Value: -1}}).
@@ -65,6 +71,9 @@ func (r *taskRepository) FindMany(ctx context.Context, filter bson.D, limit int6
 }
 
 func (r *taskRepository) FindByID(ctx context.Context, id bson.ObjectID) (*model.Task, error) {
+	ctx, cancel := withDBTimeout(ctx)
+	defer cancel()
+
 	// 不查出已被软删除的数据
 	filter := bson.D{
 		{Key: "_id", Value: id},
@@ -82,7 +91,10 @@ func (r *taskRepository) FindByID(ctx context.Context, id bson.ObjectID) (*model
 }
 
 func (r *taskRepository) UpdateByID(ctx context.Context, id bson.ObjectID, update bson.M) error {
-    filter := bson.D{
+	ctx, cancel := withDBTimeout(ctx)
+	defer cancel()
+
+	filter := bson.D{
 		{Key: "_id", Value: id},
 		{Key: "is_deleted", Value: bson.M{"$ne": true}},
 	}
@@ -98,11 +110,14 @@ func (r *taskRepository) UpdateByID(ctx context.Context, id bson.ObjectID, updat
 }
 
 func (r *taskRepository) SoftDelete(ctx context.Context, id bson.ObjectID) error {
+	ctx, cancel := withDBTimeout(ctx)
+	defer cancel()
+
 	filter := bson.D{
 		{Key: "_id", Value: id},
 		{Key: "is_deleted", Value: bson.M{"$ne": true}},
 	}
-	
+
 	update := bson.M{
 		"$set": bson.M{
 			"is_deleted": true,
