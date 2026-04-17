@@ -10,8 +10,11 @@ export default {
     loading: "Loading...",
   },
   home: {
+    heroBadge: "Realtime Workflow",
+    heroTitleSuffix: "Task Command Center",
     subtitle: "Immersive personal task management",
     start: "Get Started",
+    toLogin: "Go to Login",
   },
   auth: {
     loginTitle: "Task System",
