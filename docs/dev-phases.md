@@ -13,8 +13,8 @@
 | Phase 1 | 认证模块 | 注册/登录/JWT | ✅ 完成 |
 | Phase 2 | 任务 CRUD | 核心业务功能 | ✅ 完成 |
 | Phase 3 | 前端核心页面 | 任务列表 UI | ✅ 完成 |
-| Phase 4 | 体验优化 | 多语言/主题/动画 | ⬜ 未开始 |
-| Phase 5 | 测试与上线 | 自动化测试 + Docker | ⬜ 未开始 |
+| Phase 4 | 体验优化 | 多语言/主题/动画 | ✅ 完成 |
+| Phase 5 | 测试与上线 | 自动化测试 + Docker | 🟡 进行中 |
 
 ---
 
@@ -112,7 +112,7 @@
 ### 数据备份与恢复
 - [ ] `scripts/backup.js` — Node.js 脚本，调用 `mongodump` 备份数据库到本地参数化路径
 - [ ] `scripts/restore.js` — Node.js 脚本，调用 `mongorestore` 从指定备份总恢复
-- [ ] `package.json` 自动化脚本命令：`pnpm backup` / `pnpm restore`
+- [x] `package.json` 自动化脚本命令：`pnpm backup` / `pnpm restore`
 - [ ] 支持配置备份保留天数，自动清理过期备份
 
 ### 部署

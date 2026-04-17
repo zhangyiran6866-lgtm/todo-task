@@ -2,7 +2,7 @@
 
 > **Base URL**：`http://localhost:8080/api/v1`
 > **认证方式**：`Authorization: Bearer <access_token>`
-> **响应格式**：`{ "code": 0, "message": "success", "data": {} }`
+> **响应格式**：`{ "code": 0, "message": "成功", "data": {} }`
 
 ---
 
@@ -29,7 +29,7 @@ POST /auth/register
 ```json
 {
   "code": 0,
-  "message": "success",
+  "message": "成功",
   "data": {
     "access_token": "eyJ...",
     "refresh_token": "eyJ..."
@@ -134,6 +134,26 @@ PATCH /users/me
   "theme": "purple"
 }
 ```
+
+**Response**
+
+```json
+{
+  "code": 0,
+  "message": "成功",
+  "data": {
+    "id": "...",
+    "email": "user@example.com",
+    "nickname": "李四",
+    "language": "en",
+    "theme": "purple",
+    "created_at": "2024-01-01T00:00:00Z",
+    "updated_at": "2024-01-02T00:00:00Z"
+  }
+}
+```
+
+> 若请求体为空（未传任何可更新字段），返回 `400`。
 
 ---
 
