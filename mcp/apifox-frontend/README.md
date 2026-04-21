@@ -31,6 +31,7 @@ The server exposes one MCP tool:
 | `writeMode` | No | `dry-run` or `write`. Defaults to `dry-run`. |
 | `updateStrategy` | No | Currently supports `generated-block`. |
 | `options` | No | Generation and safety options. |
+| `options.tls` | No | TLS settings for custom CA or temporary local troubleshooting. |
 
 Example:
 
@@ -53,10 +54,20 @@ Example:
     "includeTypes": true,
     "includeRequestFunctions": true,
     "allowInsertGeneratedBlock": false,
-    "runTypeCheck": false
+    "runTypeCheck": false,
+    "tls": {
+      "caCertPath": "/path/to/corp-root-ca.pem",
+      "allowInsecureTLS": false
+    }
   }
 }
 ```
+
+### TLS Troubleshooting
+
+- Recommended: provide `options.tls.caCertPath` (PEM) when your network uses a custom root CA.
+- Temporary local fallback: set `options.tls.allowInsecureTLS=true`.
+- Do not use `allowInsecureTLS=true` in CI or production-like environments.
 
 ## Scope Rules
 

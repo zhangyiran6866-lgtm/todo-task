@@ -9,6 +9,7 @@ import {
 import axios from 'axios';
 import { exec } from 'child_process';
 import fs from 'fs/promises';
+import https from 'https';
 import path from 'path';
 import { promisify } from 'util';
 
@@ -47,6 +48,11 @@ interface SyncArguments {
     buildCommand?: string;
     quoteStyle?: 'single' | 'double';
     semicolons?: boolean;
+    // Optional TLS override for corporate proxy/custom CA environments.
+    tls?: {
+      caCertPath?: string;
+      allowInsecureTLS?: boolean;
+    };
   };
 }
 
@@ -74,6 +80,10 @@ interface ResolvedSyncArguments {
     buildCommand: string;
     quoteStyle: 'single' | 'double';
     semicolons: boolean;
+    tls: {
+      caCertPath: string;
+      allowInsecureTLS: boolean;
+    };
   };
 }
 
@@ -319,6 +329,21 @@ class ApifoxFrontendMcpServer {
                   buildCommand: { type: 'string' },
                   quoteStyle: { type: 'string', enum: ['single', 'double'] },
                   semicolons: { type: 'boolean' },
+                  tls: {
+                    type: 'object',
+                    properties: {
+                      caCertPath: {
+                        type: 'string',
+                        description:
+                          'Optional CA certificate path (PEM) for TLS verification in custom network environments.',
+                      },
+                      allowInsecureTLS: {
+                        type: 'boolean',
+                        description:
+                          'Set true only for local troubleshooting. Disables TLS certificate verification.',
+                      },
+                    },
+                  },
                 },
               },
             },
@@ -425,13 +450,17 @@ function validateArguments(raw: unknown): ResolvedSyncArguments {
       buildCommand: args.options?.buildCommand ?? 'pnpm --filter frontend build',
       quoteStyle: args.options?.quoteStyle ?? 'single',
       semicolons: args.options?.semicolons ?? false,
+      tls: {
+        caCertPath: args.options?.tls?.caCertPath ?? '',
+        allowInsecureTLS: args.options?.tls?.allowInsecureTLS ?? false,
+      },
     },
   };
 }
 
 async function syncFrontendApi(args: ResolvedSyncArguments, repoRoot: string): Promise<SyncReport> {
   const warnings: WarningItem[] = [];
-  const openApi = await fetchOpenApi(args.apifoxToken, args.projectId);
+  const openApi = await fetchOpenApi(args.apifoxToken, args.projectId, args.options.tls);
   const moduleConfig = resolveModuleConfig(args);
   const operations = normalizeOperations(openApi, args.frontend.basePath, moduleConfig, warnings);
   const matched = filterOperationsByScope(operations, args.scope);
@@ -487,27 +516,62 @@ async function syncFrontendApi(args: ResolvedSyncArguments, repoRoot: string): P
   };
 }
 
-async function fetchOpenApi(apifoxToken: string, projectId: string): Promise<OpenApiDocument> {
+async function fetchOpenApi(
+  apifoxToken: string,
+  projectId: string,
+  tlsOptions: ResolvedSyncArguments['options']['tls'],
+): Promise<OpenApiDocument> {
+  let httpsAgent: https.Agent | undefined;
+  if (tlsOptions.caCertPath) {
+    const ca = await fs.readFile(tlsOptions.caCertPath, 'utf-8');
+    httpsAgent = new https.Agent({
+      rejectUnauthorized: !tlsOptions.allowInsecureTLS,
+      ca,
+    });
+  } else if (tlsOptions.allowInsecureTLS) {
+    httpsAgent = new https.Agent({ rejectUnauthorized: false });
+  }
+
   const client = axios.create({
     headers: {
       Authorization: `Bearer ${apifoxToken}`,
       'X-Apifox-Api-Version': '2024-03-28',
       'Content-Type': 'application/json',
     },
+    httpsAgent,
   });
 
-  const response = await client.post<unknown>(
-    `${APIFOX_URL}/projects/${encodeURIComponent(projectId)}/export-openapi?locale=zh-CN`,
-    {
-      scope: { type: 'ALL' },
-      options: {
-        includeApifoxExtensionProperties: false,
-        addFoldersToTags: false,
+  let response;
+  try {
+    response = await client.post<unknown>(
+      `${APIFOX_URL}/projects/${encodeURIComponent(projectId)}/export-openapi?locale=zh-CN`,
+      {
+        scope: { type: 'ALL' },
+        options: {
+          includeApifoxExtensionProperties: false,
+          addFoldersToTags: false,
+        },
+        oasVersion: '3.1',
+        exportFormat: 'JSON',
       },
-      oasVersion: '3.1',
-      exportFormat: 'JSON',
-    },
-  );
+    );
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (
+      message.includes('unable to get local issuer certificate') ||
+      message.includes('self signed certificate')
+    ) {
+      throw new Error(
+        [
+          'TLS certificate validation failed while connecting to Apifox.',
+          'Fix options:',
+          '1) Provide options.tls.caCertPath with your corporate/root CA PEM file path.',
+          '2) For local troubleshooting only, set options.tls.allowInsecureTLS=true.',
+        ].join(' '),
+      );
+    }
+    throw error;
+  }
 
   if (!isObject(response.data)) {
     throw new Error('Apifox OpenAPI export returned invalid data');
