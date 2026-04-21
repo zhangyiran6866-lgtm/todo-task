@@ -144,11 +144,7 @@ const heroGlowVars = computed(() => ({
 }))
 
 function handleStart() {
-  if (authStore.isLoggedIn) {
-    router.push({ name: 'tasks' })
-  } else {
-    router.push({ name: 'login' })
-  }
+  router.push({ name: 'tasks' })
 }
 
 function handleToLogin() {
@@ -168,20 +164,10 @@ onMounted(() => {
     timeline
       .from('.hero-grid', { opacity: 0, scale: 1.06, duration: 1.1 })
       .from('.hero-glow', { opacity: 0, scale: 0.65, stagger: 0.12, duration: 0.9 }, '-=0.8')
-      .from('.hero-badge', { y: 18, opacity: 0, duration: 0.8 }, '-=0.65')
-      .from('.hero-title-line', { y: 42, opacity: 0, stagger: 0.12, duration: 1.05 }, '-=0.55')
+      .from('.hero-title-line', { y: 42, opacity: 0, stagger: 0.12, duration: 1.05 }, '-=0.65')
       .from('.hero-subtitle', { y: 24, opacity: 0, duration: 0.85 }, '-=0.65')
       .from('.hero-cta-btn', { y: 20, opacity: 0, stagger: 0.1, duration: 0.75 }, '-=0.5')
       .from('.hero-metric', { y: 16, opacity: 0, stagger: 0.08, duration: 0.65 }, '-=0.45')
-
-    gsap.to('.hero-pulse', {
-      scale: glowPreset.pulseScale,
-      opacity: glowPreset.pulseOpacity,
-      duration: glowPreset.pulseDuration,
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut'
-    })
 
     const glowA = glowARef.value
     const glowB = glowBRef.value
@@ -293,13 +279,6 @@ onUnmounted(() => {
       class="relative z-10 mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-6 py-16"
     >
       <div class="hero-panel w-full max-w-3xl rounded-2xl border border-white/10 bg-glass p-8 text-center md:p-12">
-        <div
-          class="hero-badge mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-neon/40 px-4 py-2 text-xs tracking-[0.24em] text-neon md:text-sm"
-        >
-          <span class="hero-pulse h-2.5 w-2.5 rounded-full bg-[var(--neon)]"></span>
-          <span>{{ t('home.heroBadge') }}</span>
-        </div>
-
         <h1 class="mb-5 text-4xl font-bold leading-tight text-neon md:text-6xl">
           <span class="hero-title-line block">{{ t('common.appName') }}</span>
           <span class="hero-title-line block text-2xl tracking-[0.14em] text-white/90 md:text-3xl">
@@ -313,6 +292,7 @@ onUnmounted(() => {
 
         <div class="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <button
+            v-if="authStore.isLoggedIn"
             id="btn-start"
             class="hero-cta-btn w-full rounded-lg border border-neon bg-[var(--neon)]/10 px-8 py-3 text-base font-semibold text-neon shadow-neon transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--neon-glow)] sm:w-auto"
             @click="handleStart"
@@ -320,6 +300,7 @@ onUnmounted(() => {
             {{ t('home.start') }}
           </button>
           <button
+            v-else
             id="btn-login"
             class="hero-cta-btn w-full rounded-lg border border-white/20 px-8 py-3 text-base font-medium text-white/85 transition-all duration-300 hover:-translate-y-0.5 hover:border-neon hover:text-neon sm:w-auto"
             @click="handleToLogin"

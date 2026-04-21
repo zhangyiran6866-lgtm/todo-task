@@ -30,6 +30,7 @@ export default {
     hasAccount: "已有账号？",
     toRegister: "立即注册",
     toLogin: "立即登录",
+    backHome: "返回首页",
     passwordPlaceholder: "请输入登录密码",
     registerPasswordPlaceholder: "请输入至少8位包含字母和数字的密码",
     emailPlaceholder: "请输入您的电子邮箱",

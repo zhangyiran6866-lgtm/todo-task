@@ -61,9 +61,9 @@ router.beforeEach((to) => {
   if (to.meta.requiresAuth && !authStore.isLoggedIn) {
     return { name: 'login' }
   }
-  // 已登录访问 login/register/home 跳转到 tasks
-  if (!to.meta.requiresAuth && (to.name === 'login' || to.name === 'register' || to.name === 'home') && authStore.isLoggedIn) {
-    return { name: 'tasks' }
+  // 已登录访问 login/register 时回到首页，统一从 Home 进入系统
+  if (!to.meta.requiresAuth && (to.name === 'login' || to.name === 'register') && authStore.isLoggedIn) {
+    return { name: 'home' }
   }
 })
 

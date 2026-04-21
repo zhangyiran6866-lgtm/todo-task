@@ -21,6 +21,13 @@
 
 TodoTask is a **full-stack personal task management system** built with an immersive Tech-Noir UI. It features task CRUD operations, JWT authentication, bilingual (Chinese/English) support, and multiple neon color themes.
 
+## 🧭 Entry Rules
+
+- The home page `/` is the unified entry point and is shown first when reopening the browser or visiting the root path.
+- Logged-in users only see "Get Started" on the home page; clicking it opens the task list at `/tasks`.
+- Logged-out users only see "Go to Login" on the home page; clicking it opens `/login`.
+- After a successful login, users go directly to the task list; after registration, users return to the login page.
+
 ## 🖥️ Tech Stack
 
 | Layer | Technology |

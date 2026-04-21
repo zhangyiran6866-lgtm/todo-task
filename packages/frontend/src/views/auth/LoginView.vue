@@ -50,6 +50,27 @@ const handleLogin = async () => {
   <div
     class="w-full max-w-md p-8 rounded-2xl bg-[rgba(5,10,15,0.4)] backdrop-blur-xl border border-[rgba(0,243,255,0.15)] z-10 transition-all"
   >
+    <router-link
+      to="/"
+      class="mb-6 inline-flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-neon"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-4 w-4"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M3 12l9-9 9 9M5 10v10h14V10"
+        />
+      </svg>
+      {{ t("auth.backHome") }}
+    </router-link>
+
     <h2 class="text-3xl font-bold text-center text-neon drop-shadow-neon mb-8">
       {{ t("auth.loginTitle") }}
     </h2>

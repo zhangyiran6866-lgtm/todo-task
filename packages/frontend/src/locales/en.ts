@@ -30,6 +30,7 @@ export default {
     hasAccount: "Already have an account?",
     toRegister: "Create one",
     toLogin: "Log in now",
+    backHome: "Back to home",
     passwordPlaceholder: "Enter your password",
     registerPasswordPlaceholder: "Use at least 8 characters with letters and numbers",
     emailPlaceholder: "Enter your email address",
