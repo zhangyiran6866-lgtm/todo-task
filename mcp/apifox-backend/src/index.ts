@@ -11,10 +11,63 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs/promises';
+import { fileURLToPath } from 'url';
 
 const execAsync = promisify(exec);
 
 const APIFOX_URL = 'https://api.apifox.com/v1';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+type ImportFormat = 'openapi3' | 'swagger2';
+
+function normalizePathForLog(inputPath: string): string {
+  return inputPath.replace(process.cwd(), '.');
+}
+
+async function pathExists(targetPath: string): Promise<boolean> {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function locateBackendPath(): Promise<string> {
+  const candidates = [
+    path.resolve(process.cwd(), 'packages/backend'),
+    path.resolve(process.cwd(), '../../packages/backend'),
+    path.resolve(__dirname, '../../packages/backend'),
+    path.resolve(__dirname, '../../../packages/backend'),
+  ];
+
+  for (const candidate of candidates) {
+    const mainPath = path.join(candidate, 'cmd/server/main.go');
+    const swaggerPath = path.join(candidate, 'docs/swagger.json');
+    if (await pathExists(mainPath) || await pathExists(swaggerPath)) {
+      return candidate;
+    }
+  }
+
+  throw new Error(
+    `Cannot locate backend project path. Checked: ${candidates.map(normalizePathForLog).join(', ')}`
+  );
+}
+
+function detectImportFormat(swaggerDoc: unknown): ImportFormat {
+  if (swaggerDoc && typeof swaggerDoc === 'object') {
+    const doc = swaggerDoc as Record<string, unknown>;
+    if (typeof doc.openapi === 'string' && doc.openapi.startsWith('3')) {
+      return 'openapi3';
+    }
+    if (typeof doc.swagger === 'string' && doc.swagger.startsWith('2')) {
+      return 'swagger2';
+    }
+  }
+  // Default to Swagger 2 because swaggo currently emits Swagger 2.0.
+  return 'swagger2';
+}
 
 class ApifoxMcpServer {
   private server: Server;
@@ -73,8 +126,8 @@ class ApifoxMcpServer {
       const projectId = args.projectId;
 
       try {
-        const backendPath = path.resolve(process.cwd(), '../../packages/backend'); 
-        console.error(`Running swag init in ${backendPath}...`);
+        const backendPath = await locateBackendPath();
+        console.error(`Running swag init in ${normalizePathForLog(backendPath)}...`);
         
         try {
           const { stdout, stderr } = await execAsync('export PATH=$PATH:/usr/local/go/bin && go run github.com/swaggo/swag/cmd/swag@latest init -g cmd/server/main.go --parseDependency --parseInternal', { cwd: backendPath });
@@ -87,6 +140,8 @@ class ApifoxMcpServer {
 
         const swaggerPath = path.join(backendPath, 'docs/swagger.json');
         const swaggerData = await fs.readFile(swaggerPath, 'utf-8');
+        const swaggerDoc = JSON.parse(swaggerData);
+        const importFormat = detectImportFormat(swaggerDoc);
 
         const axiosClient = axios.create({
           headers: {
@@ -95,11 +150,11 @@ class ApifoxMcpServer {
           }
         });
 
-        console.error(`Uploading swagger data to project ${projectId}...`);
+        console.error(`Uploading ${importFormat} data to project ${projectId}...`);
         
         // Exact Apifox payload required
         const importPayload = {
-            format: 'openapi3',
+            format: importFormat,
             input: swaggerData,
             apiOverwriteBehavior: 'UPDATE_ALL'
         };
