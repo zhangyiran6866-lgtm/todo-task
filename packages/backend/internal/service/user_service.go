@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"todotask/backend/internal/model"
@@ -16,6 +17,7 @@ var (
 	ErrInvalidPassword = errors.New("invalid password")
 	ErrPasswordSame    = errors.New("new password must be different from old password")
 	ErrEmptyProfile    = errors.New("at least one profile field is required")
+	ErrInvalidProfile  = errors.New("invalid profile field")
 )
 
 type ChangePasswordRequest struct {
@@ -24,9 +26,9 @@ type ChangePasswordRequest struct {
 }
 
 type UpdateProfileRequest struct {
-	Nickname string `json:"nickname" binding:"omitempty,min=1,max=30"`
-	Language string `json:"language" binding:"omitempty,oneof=zh en"`
-	Theme    string `json:"theme" binding:"omitempty,oneof=cyan purple green pink"`
+	Nickname *string `json:"nickname,omitempty"`
+	Language *string `json:"language,omitempty"`
+	Theme    *string `json:"theme,omitempty"`
 }
 
 type UserService interface {
@@ -52,14 +54,24 @@ func (s *userService) UpdateProfile(ctx context.Context, id bson.ObjectID, req *
 		"updated_at": time.Now(),
 	}
 
-	if req.Nickname != "" {
-		update["nickname"] = req.Nickname
+	if req.Nickname != nil {
+		nickname := strings.TrimSpace(*req.Nickname)
+		if nickname == "" || len([]rune(nickname)) > 30 {
+			return nil, ErrInvalidProfile
+		}
+		update["nickname"] = nickname
 	}
-	if req.Language != "" {
-		update["language"] = req.Language
+	if req.Language != nil {
+		if !isValidLanguage(*req.Language) {
+			return nil, ErrInvalidProfile
+		}
+		update["language"] = *req.Language
 	}
-	if req.Theme != "" {
-		update["theme"] = req.Theme
+	if req.Theme != nil {
+		if !isValidTheme(*req.Theme) {
+			return nil, ErrInvalidProfile
+		}
+		update["theme"] = *req.Theme
 	}
 
 	if len(update) == 1 {
@@ -71,6 +83,19 @@ func (s *userService) UpdateProfile(ctx context.Context, id bson.ObjectID, req *
 	}
 
 	return s.repo.FindByID(ctx, id)
+}
+
+func isValidLanguage(language string) bool {
+	return language == "zh" || language == "en"
+}
+
+func isValidTheme(theme string) bool {
+	switch theme {
+	case "cyan", "purple", "green", "pink":
+		return true
+	default:
+		return false
+	}
 }
 
 func (s *userService) ChangePassword(ctx context.Context, id bson.ObjectID, req *ChangePasswordRequest) error {

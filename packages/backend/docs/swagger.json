@@ -669,6 +669,79 @@
                         }
                     }
                 }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the authenticated user's profile fields",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "更新当前用户信息",
+                "parameters": [
+                    {
+                        "description": "Profile update payload",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_internal_service.UpdateProfileRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully updated user profile",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/todotask_backend_internal_model.User"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    }
+                }
             }
         },
         "/users/me/password": {
@@ -899,6 +972,20 @@
                     "type": "string"
                 },
                 "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "todotask_backend_internal_service.UpdateProfileRequest": {
+            "type": "object",
+            "properties": {
+                "language": {
+                    "type": "string"
+                },
+                "nickname": {
+                    "type": "string"
+                },
+                "theme": {
                     "type": "string"
                 }
             }

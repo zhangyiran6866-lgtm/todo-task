@@ -111,6 +111,10 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 			response.BadRequest(c, "至少需要更新一个字段")
 			return
 		}
+		if errors.Is(err, service.ErrInvalidProfile) {
+			response.BadRequest(c, "用户信息参数不合法")
+			return
+		}
 		if errors.Is(err, repository.ErrUserNotFound) {
 			response.NotFound(c, "用户不存在")
 			return

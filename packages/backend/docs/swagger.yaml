@@ -110,6 +110,15 @@ definitions:
       refresh_token:
         type: string
     type: object
+  todotask_backend_internal_service.UpdateProfileRequest:
+    properties:
+      language:
+        type: string
+      nickname:
+        type: string
+      theme:
+        type: string
+    type: object
   todotask_backend_internal_service.UpdateTaskReq:
     properties:
       description:
@@ -544,6 +553,50 @@ paths:
       security:
       - BearerAuth: []
       summary: 获取当前用户个人信息
+      tags:
+      - Users
+    patch:
+      consumes:
+      - application/json
+      description: Update the authenticated user's profile fields
+      parameters:
+      - description: Profile update payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/todotask_backend_internal_service.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated user profile
+          schema:
+            allOf:
+            - $ref: '#/definitions/todotask_backend_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/todotask_backend_internal_model.User'
+              type: object
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "404":
+          description: User not found
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 更新当前用户信息
       tags:
       - Users
   /users/me/password:
