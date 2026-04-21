@@ -58,7 +58,7 @@ todotask/
 │           └── styles/       # Global styles & Less variables
 ├── docs/                     # Project documentation
 ├── agent/                    # AI coding standards (Skill files)
-├── mcp/                      # MCP tools (e.g., apifox-backend)
+├── mcp/                      # MCP tools (Apifox backend/frontend sync)
 └── scripts/                  # Data backup & restore scripts (Phase 5 pending)
 ```
 
@@ -139,7 +139,8 @@ docker-compose up -d
 | [Database Design](docs/database-design.md) | MongoDB schema design |
 | [Frontend PRD](docs/frontend-prd.md) | Page & feature specifications |
 | [Testing Guide](docs/testing.md) | Automated testing standards |
-| [Apifox MCP](mcp/apifox-backend/README.md) | Backend API documentation sync tool |
+| [Apifox Backend MCP](mcp/apifox-backend/README.md) | Sync backend API docs to Apifox |
+| [Apifox Frontend MCP](mcp/apifox-frontend/README.md) | Sync Apifox API contracts to frontend API TypeScript |
 
 ## 🔐 Local Secrets
 

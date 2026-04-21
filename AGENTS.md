@@ -48,7 +48,8 @@ todotask/
 │   └── testing.md               ← 自动化测试文档
 │
 ├── mcp/                         ← MCP (Model Context Protocol) 插件集
-│   └── apifox-backend/          ← Apifox 接口自动化同步 MCP
+│   ├── apifox-backend/          ← 后端 OpenAPI 同步到 Apifox 的 MCP
+│   └── apifox-frontend/         ← Apifox 接口契约同步到前端 API TS 层的 MCP
 │
 ├── agent/                       ← AI 编码规范（Skill 文件）
 │   ├── backend/skill.md         ← Go 后端开发规范
@@ -250,8 +251,12 @@ todotask/
 
 - **命名与结构规范**：每个 MCP 必须以独立的文件夹存放，文件夹命名依据其功能属性（例如 `apifox-backend`）。具体的 MCP 服务代码、依赖文件和配置参数均**只能**存放于其对应命名的子文件夹内。
 - **使用要求**：视具体开发阶段按需调用和激活。
-- **当前状态**：项目中已引入 `apifox-backend` 节点 MCP 服务用于后端 API 文档的自动化同步。Phase 2 已完成，允许在确有 API 文档同步/调试需求时按需启用；未涉及 API 文档任务时不要擅自激活。
-- **工具说明**：使用前先阅读 [`mcp/apifox-backend/README.md`](./mcp/apifox-backend/README.md)，确认构建命令、工具参数和同步流程。
+- **当前状态**：
+  - `apifox-backend`：用于将 Go 后端 Swagger/OpenAPI 文档同步到 Apifox。Phase 2 已完成，允许在确有 API 文档同步/调试需求时按需启用；未涉及 API 文档任务时不要擅自激活。
+  - `apifox-frontend`：用于从 Apifox 获取明确范围内的接口契约，并同步到前端 `packages/frontend/src/api/**/*.ts` 的类型与请求函数。该 MCP **只允许**修改前端 API 契约层，禁止修改 Vue 页面、Pinia Store、路由和业务逻辑。
+- **工具说明**：
+  - 使用 `apifox-backend` 前先阅读 [`mcp/apifox-backend/README.md`](./mcp/apifox-backend/README.md)，确认构建命令、工具参数和同步流程。
+  - 使用 `apifox-frontend` 前先阅读 [`mcp/apifox-frontend/README.md`](./mcp/apifox-frontend/README.md)，确认 scope、dry-run/write 模式、generated block 安全写入策略和输出报告格式。
 
 ## 十三、本地敏感信息规范
 

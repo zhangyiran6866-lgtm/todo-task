@@ -58,7 +58,7 @@ todotask/
 │           └── styles/       # 全局样式 & Less 变量
 ├── docs/                     # 项目文档
 ├── agent/                    # AI 编码规范（Skill 文件）
-├── mcp/                      # MCP 工具集（如 apifox-backend）
+├── mcp/                      # MCP 工具集（Apifox 后端/前端同步）
 └── scripts/                  # 数据备份 & 恢复脚本（Phase 5 待创建）
 ```
 
@@ -139,7 +139,8 @@ docker-compose up -d
 | [数据库设计](docs/database-design.md) | MongoDB 集合设计 |
 | [前端 PRD](docs/frontend-prd.md) | 页面与功能规范 |
 | [测试文档](docs/testing.md) | 自动化测试规范 |
-| [Apifox MCP](mcp/apifox-backend/README.md) | 后端接口文档同步工具 |
+| [Apifox Backend MCP](mcp/apifox-backend/README.md) | 后端接口文档同步到 Apifox |
+| [Apifox Frontend MCP](mcp/apifox-frontend/README.md) | Apifox 接口契约同步到前端 API TS 层 |
 
 ## 🔐 本地敏感信息
 
