@@ -8,6 +8,8 @@ packages/backend/tmp/
 packages/backend/*.exe
 
 # Backup files
+# 数据库备份
+backups/
 scripts/backups/
 
 # Environment
