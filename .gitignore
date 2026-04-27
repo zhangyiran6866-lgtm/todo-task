@@ -6,6 +6,7 @@ dist/
 # Go
 packages/backend/tmp/
 packages/backend/*.exe
+packages/backend/server
 
 # Backup files
 # 数据库备份
