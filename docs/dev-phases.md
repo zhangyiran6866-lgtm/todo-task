@@ -110,10 +110,10 @@
 - [ ] Go 单元测试（Service 层主要逻辑）
 
 ### 数据备份与恢复
-- [ ] `scripts/backup.js` — Node.js 脚本，调用 `mongodump` 备份数据库到本地参数化路径
-- [ ] `scripts/restore.js` — Node.js 脚本，调用 `mongorestore` 从指定备份总恢复
+- [x] `scripts/backup.js` — Node.js 脚本，调用 `mongodump` 备份数据库到本地参数化路径
+- [x] `scripts/restore.js` — Node.js 脚本，调用 `mongorestore` 从指定备份总恢复
 - [x] `package.json` 自动化脚本命令：`pnpm backup` / `pnpm restore`
-- [ ] 支持配置备份保留天数，自动清理过期备份
+- [x] 支持配置备份保留天数，自动清理过期备份
 
 ### 部署
 - [ ] 生产环境 docker-compose 配置
