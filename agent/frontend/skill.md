@@ -1,7 +1,6 @@
-# 前端开发规范 Skill · zz-lulu
+# 前端开发规范 Skill
 
 > **Skill 路径**：`agent/frontend/skill.md`
-> **来源文档**：`docs/front-design.md`（以该文档为最终权威）
 > **生效范围**：所有 `packages/frontend/` 下的代码，以及任何涉及前端的改动
 > **执行优先级**：每次生成/修改前端代码，**必须全部遵循本文件规范，无例外**
 

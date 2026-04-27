@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "dev": "concurrently --names backend,frontend --prefix name --kill-others --kill-others-on-fail \"pnpm run dev:backend\" \"pnpm run dev:frontend\"",
+    "serve": "pnpm run dev:backend",
+    "dev:backend": "go -C ./packages/backend run ./cmd/server/main.go",
     "dev:frontend": "pnpm --filter frontend dev",
+    "build:backend": "go -C ./packages/backend build -o server ./cmd/server/main.go",
     "build:frontend": "pnpm --filter frontend build",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
@@ -14,5 +18,8 @@
   "engines": {
     "node": ">=20.10.0",
     "pnpm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
