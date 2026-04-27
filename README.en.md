@@ -59,7 +59,7 @@ todotask/
 ├── docs/                     # Project documentation
 ├── agent/                    # AI coding standards (Skill files)
 ├── mcp/                      # MCP tools (Apifox backend/frontend sync)
-└── scripts/                  # Data backup & restore scripts (Phase 5 pending)
+└── scripts/                  # Data backup & restore scripts
 ```
 
 ## 🚀 Getting Started
@@ -81,42 +81,39 @@ cd todo-task
 # 2. Switch Node version
 nvm use
 
-# 3. Install frontend dependencies
+# 3. Install dependencies
 pnpm install
 
 # 4. Start MongoDB (Docker)
-docker-compose up -d mongodb
+pnpm docker:up
 
-# 5. Start backend
-cd packages/backend
-go run ./cmd/server/main.go
+# 5. Start development servers
+# Option A: One-click start (Recommended)
+pnpm dev
 
-# 6. Start frontend (new terminal)
+# Option B: Start separately (Better for debugging)
+# Terminal 1: Backend
+pnpm dev:backend
+# Terminal 2: Frontend
 pnpm dev:frontend
 ```
 
 - Frontend: http://localhost:5173
 - Backend: http://localhost:8080
-- Health Check: http://localhost:8080/health
 
-### Docker Deployment
-
-```bash
-docker-compose up -d
-```
-
-## 📦 Scripts
+### 📦 Scripts
 
 | Command | Description |
 |---------|-------------|
-| `pnpm dev:frontend` | Start frontend dev server |
+| `pnpm dev` | **Recommended**: Start both frontend and backend dev environments |
+| `pnpm dev:backend` | Start backend service only |
+| `pnpm dev:frontend` | Start frontend dev server only |
+| `pnpm build:backend` | Compile backend binary |
 | `pnpm build:frontend` | Build frontend for production |
-| `pnpm docker:up` | Start all containers |
+| `pnpm docker:up` | Start MongoDB container (background) |
 | `pnpm docker:down` | Stop all containers |
-| `pnpm backup` | Backup MongoDB data (Phase 5 pending) |
-| `pnpm restore` | Restore MongoDB data (Phase 5 pending) |
-
-> Note: `scripts/backup.js` and `scripts/restore.js` have not been created yet. The backup/restore commands will be available after Phase 5 is completed.
+| `pnpm backup` | Backup MongoDB data (with auto-cleanup) |
+| `pnpm restore` | Interactive MongoDB data restore |
 
 ## 🎨 Themes
 

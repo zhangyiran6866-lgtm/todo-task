@@ -59,7 +59,7 @@ todotask/
 ├── docs/                     # 项目文档
 ├── agent/                    # AI 编码规范（Skill 文件）
 ├── mcp/                      # MCP 工具集（Apifox 后端/前端同步）
-└── scripts/                  # 数据备份 & 恢复脚本（Phase 5 待创建）
+└── scripts/                  # 数据备份 & 恢复脚本
 ```
 
 ## 🚀 快速开始
@@ -81,42 +81,39 @@ cd todo-task
 # 2. 切换 Node 版本
 nvm use
 
-# 3. 安装前端依赖
+# 3. 安装依赖
 pnpm install
 
 # 4. 启动 MongoDB（Docker）
-docker-compose up -d mongodb
+pnpm docker:up
 
-# 5. 启动后端
-cd packages/backend
-go run ./cmd/server/main.go
+# 5. 启动开发服务器
+# 方案 A: 一键启动前后端（推荐）
+pnpm dev
 
-# 6. 启动前端（新终端）
+# 方案 B: 分别启动（适合调试）
+# 终端 1: 启动后端
+pnpm dev:backend
+# 终端 2: 启动前端
 pnpm dev:frontend
 ```
 
 - 前端：http://localhost:5173
 - 后端：http://localhost:8080
-- 健康检查：http://localhost:8080/health
 
-### 容器化部署
-
-```bash
-docker-compose up -d
-```
-
-## 📦 脚本命令
+### 📦 脚本命令
 
 | 命令 | 说明 |
 |------|------|
-| `pnpm dev:frontend` | 启动前端开发服务器 |
+| `pnpm dev` | **推荐**：同时启动前端与后端开发环境 |
+| `pnpm dev:backend` | 仅启动后端服务 |
+| `pnpm dev:frontend` | 仅启动前端开发服务器 |
+| `pnpm build:backend` | 编译后端二进制文件 |
 | `pnpm build:frontend` | 构建前端生产包 |
-| `pnpm docker:up` | 启动所有容器 |
+| `pnpm docker:up` | 启动 MongoDB 容器（后台运行） |
 | `pnpm docker:down` | 停止所有容器 |
-| `pnpm backup` | 备份 MongoDB 数据（Phase 5 待实现） |
-| `pnpm restore` | 恢复 MongoDB 数据（Phase 5 待实现） |
-
-> 注意：`scripts/backup.js` 与 `scripts/restore.js` 尚未创建，备份/恢复命令会在 Phase 5 完成后可用。
+| `pnpm backup` | 备份 MongoDB 数据（含自动清理） |
+| `pnpm restore` | 交互式恢复 MongoDB 数据 |
 
 ## 🎨 UI 主题
 
