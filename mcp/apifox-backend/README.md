@@ -22,6 +22,9 @@ Input parameters:
 |-----------|----------|-------------|
 | `apifoxToken` | Yes | Apifox Personal Access Token. |
 | `projectId` | Yes | Apifox Project ID, not Team ID. |
+| `options` | No | Optional sync options. |
+| `options.tls.caCertPath` | No | CA certificate PEM path for strict TLS in custom network environments. |
+| `options.tls.allowInsecureTLS` | No | Temporary local fallback only. Disables TLS certificate verification. |
 
 ## Local Credentials
 
@@ -84,5 +87,6 @@ packages/backend/docs/swagger.yaml
 - Read the root `AGENTS.md` before using this tool.
 - Phase 2 is complete, so this MCP can be used for API documentation synchronization when needed.
 - Never print or commit Apifox tokens.
+- Prefer strict TLS with `options.tls.caCertPath`; avoid `allowInsecureTLS=true` except temporary local troubleshooting.
 - If Swagger generation fails on handler annotations such as `model.Task` or `model.User`, ensure the handler file imports the referenced package, often as a blank import for docs parsing.
 - After Swagger generation, run `go test ./...` in `packages/backend` to confirm the backend still compiles.

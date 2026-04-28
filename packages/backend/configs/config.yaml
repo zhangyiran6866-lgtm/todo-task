@@ -18,4 +18,10 @@ jwt:
 
 log:
   level: debug
-  format: console
+  format: json
+  app_path: "logs/app.log"
+  error_path: "logs/error.log"
+  audit_path: "logs/audit.log"
+  retention_days: 7
+  compress: true
+  stdout: true

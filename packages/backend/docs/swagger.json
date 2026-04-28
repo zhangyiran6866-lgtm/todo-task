@@ -244,6 +244,193 @@
                 }
             }
         },
+        "/logs": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Query structured logs with channel/level/module/keyword/time range filters",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logs"
+                ],
+                "summary": "查询日志列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Log channel: app|error|audit",
+                        "name": "channel",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Log level: debug|info|warn|error",
+                        "name": "level",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Log module",
+                        "name": "module",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Keyword full text search",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start time (RFC3339 or yyyy-mm-dd)",
+                        "name": "start_at",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End time (RFC3339 or yyyy-mm-dd)",
+                        "name": "end_at",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page size (default 20, max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Pagination cursor (offset)",
+                        "name": "cursor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved logs",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/todotask_backend_internal_service.ListLogsResp"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid query parameters",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/logs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get full structured log content by id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Logs"
+                ],
+                "summary": "获取日志详情",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Log ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Log channel: app|error|audit",
+                        "name": "channel",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved log detail",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/todotask_backend_internal_model.LogEntry"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid log id",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Log not found",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/todotask_backend_pkg_response.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/tasks": {
             "get": {
                 "security": [
@@ -809,6 +996,63 @@
         }
     },
     "definitions": {
+        "todotask_backend_internal_model.LogEntry": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "type": "string"
+                },
+                "channel": {
+                    "type": "string"
+                },
+                "client_ip": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "latency_ms": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "string"
+                },
+                "module": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "raw": {
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "request_id": {
+                    "type": "string"
+                },
+                "route": {
+                    "type": "string"
+                },
+                "status_code": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "todotask_backend_internal_model.Task": {
             "type": "object",
             "properties": {
@@ -901,6 +1145,20 @@
                     "type": "string"
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "todotask_backend_internal_service.ListLogsResp": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/todotask_backend_internal_model.LogEntry"
+                    }
+                },
+                "next_cursor": {
                     "type": "string"
                 }
             }

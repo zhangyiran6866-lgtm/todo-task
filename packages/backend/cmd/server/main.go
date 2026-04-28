@@ -39,11 +39,24 @@ func main() {
 	}
 
 	// 2. 初始化日志
-	log, err := logger.New(cfg.Log.Level, cfg.Log.Format)
+	log, err := logger.New(logger.Config{
+		Level:         cfg.Log.Level,
+		Format:        cfg.Log.Format,
+		AppPath:       cfg.Log.AppPath,
+		ErrorPath:     cfg.Log.ErrorPath,
+		AuditPath:     cfg.Log.AuditPath,
+		RetentionDays: cfg.Log.RetentionDays,
+		Compress:      cfg.Log.Compress,
+		Stdout:        cfg.Log.Stdout,
+	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "init logger failed: %v\n", err)
 		os.Exit(1)
 	}
+	log = log.With(
+		zap.String("service", "todotask-backend"),
+		zap.String("env", cfg.App.Env),
+	)
 	defer log.Sync() //nolint:errcheck
 
 	// 3. 连接 MongoDB
@@ -74,7 +87,7 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	r := gin.New()
-	r.Use(gin.Recovery())
+	r.Use(middleware.RequestLog(log), gin.Recovery())
 
 	// 5. 注册路由
 	db := mongoClient.Database(cfg.MongoDB.Database)
@@ -125,6 +138,10 @@ func registerRoutes(r *gin.Engine, log *zap.Logger, db *mongo.Database, cfg *con
 	taskSvc := service.NewTaskService(taskRepo)
 	taskHandler := handler.NewTaskHandler(taskSvc, log)
 
+	logRepo := repository.NewLogRepository(&cfg.Log)
+	logSvc := service.NewLogService(logRepo)
+	logHandler := handler.NewLogHandler(logSvc, log)
+
 	// API v1 路由组
 	v1 := r.Group("/api/v1")
 	{
@@ -152,6 +169,13 @@ func registerRoutes(r *gin.Engine, log *zap.Logger, db *mongo.Database, cfg *con
 			taskRoutes.GET("/:id", taskHandler.GetTask)
 			taskRoutes.PATCH("/:id", taskHandler.UpdateTask)
 			taskRoutes.DELETE("/:id", taskHandler.DeleteTask)
+		}
+
+		logRoutes := v1.Group("/logs")
+		logRoutes.Use(middleware.JWTAuth(&cfg.JWT))
+		{
+			logRoutes.GET("", logHandler.ListLogs)
+			logRoutes.GET("/:id", logHandler.GetLog)
 		}
 	}
 

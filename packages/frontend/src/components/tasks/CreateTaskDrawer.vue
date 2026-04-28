@@ -151,7 +151,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { X } from 'lucide-vue-next'
 import { useTaskStore } from '@/stores/use-task-store'
-import type { CreateTaskReq } from '@/api/task'
+import type { CreateTaskReq, TaskPriority } from '@/api/task'
 
 // Datepicker
 import { VueDatePicker } from '@vuepic/vue-datepicker'
@@ -172,7 +172,7 @@ const isSubmitting = ref(false)
 
 const ddlDate = ref<Date | null>(null)
 
-const priorityOptions = [
+const priorityOptions: Array<{ key: string; value: TaskPriority; activeClass: string }> = [
   { key: 'tasks.priorityCritical', value: 'critical', activeClass: 'border-rose-500 text-rose-400 bg-rose-500/10' },
   { key: 'tasks.priorityImportant', value: 'important', activeClass: 'border-purple-500 text-purple-400 bg-purple-500/10' },
   { key: 'tasks.priorityUrgent', value: 'urgent', activeClass: 'border-amber-500 text-amber-400 bg-amber-500/10' },

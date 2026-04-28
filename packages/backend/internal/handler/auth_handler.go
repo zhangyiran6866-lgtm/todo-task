@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 
 	"todotask/backend/internal/service"
+	applog "todotask/backend/pkg/logger"
 	"todotask/backend/pkg/response"
 )
 
@@ -17,6 +18,13 @@ type AuthHandler struct {
 
 func NewAuthHandler(svc service.AuthService, log *zap.Logger) *AuthHandler {
 	return &AuthHandler{svc: svc, log: log}
+}
+
+func (h *AuthHandler) reqLogger(c *gin.Context, action string) *zap.Logger {
+	return applog.WithContext(h.log, c.Request.Context()).With(
+		zap.String(applog.FieldModule, "auth"),
+		zap.String(applog.FieldAction, action),
+	)
 }
 
 // Register godoc
@@ -32,8 +40,11 @@ func NewAuthHandler(svc service.AuthService, log *zap.Logger) *AuthHandler {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
+	reqLogger := h.reqLogger(c, "register")
+
 	var req service.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		reqLogger.Warn("register bind failed", zap.Error(err))
 		response.BadRequest(c, "请求参数不合法")
 		return
 	}
@@ -41,13 +52,36 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	res, err := h.svc.Register(c.Request.Context(), &req)
 	if err != nil {
 		if errors.Is(err, service.ErrEmailConflict) {
+			applog.Audit(
+				c.Request.Context(),
+				"auth",
+				"register_conflict",
+				"user register conflict",
+				zap.String("email", applog.MaskEmail(req.Email)),
+			)
 			response.Conflict(c, "邮箱已被注册")
 			return
 		}
-		h.log.Error("register failed", zap.Error(err))
+		reqLogger.Error("register failed", zap.String("email", applog.MaskEmail(req.Email)), zap.Error(err))
+		applog.Audit(
+			c.Request.Context(),
+			"auth",
+			"register_failed",
+			"user register failed",
+			zap.String("email", applog.MaskEmail(req.Email)),
+			zap.Error(err),
+		)
 		response.InternalError(c, "服务器内部错误")
 		return
 	}
+
+	applog.Audit(
+		c.Request.Context(),
+		"auth",
+		"register_success",
+		"user registered",
+		zap.String("email", applog.MaskEmail(req.Email)),
+	)
 
 	response.OK(c, res)
 }
@@ -65,8 +99,11 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
+	reqLogger := h.reqLogger(c, "login")
+
 	var req service.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		reqLogger.Warn("login bind failed", zap.Error(err))
 		response.BadRequest(c, "请求参数不合法")
 		return
 	}
@@ -74,13 +111,36 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	res, err := h.svc.Login(c.Request.Context(), &req)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidLogin) {
+			applog.Audit(
+				c.Request.Context(),
+				"auth",
+				"login_failed",
+				"user login failed",
+				zap.String("email", applog.MaskEmail(req.Email)),
+			)
 			response.Unauthorized(c, "邮箱或密码错误")
 			return
 		}
-		h.log.Error("login failed", zap.Error(err))
+		reqLogger.Error("login failed", zap.String("email", applog.MaskEmail(req.Email)), zap.Error(err))
+		applog.Audit(
+			c.Request.Context(),
+			"auth",
+			"login_error",
+			"user login error",
+			zap.String("email", applog.MaskEmail(req.Email)),
+			zap.Error(err),
+		)
 		response.InternalError(c, "服务器内部错误")
 		return
 	}
+
+	applog.Audit(
+		c.Request.Context(),
+		"auth",
+		"login_success",
+		"user login success",
+		zap.String("email", applog.MaskEmail(req.Email)),
+	)
 
 	response.OK(c, res)
 }
@@ -97,8 +157,11 @@ func (h *AuthHandler) Login(c *gin.Context) {
 // @Failure 401 {object} response.Response "Invalid or expired token"
 // @Router /auth/refresh [post]
 func (h *AuthHandler) Refresh(c *gin.Context) {
+	reqLogger := h.reqLogger(c, "refresh")
+
 	var req service.RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		reqLogger.Warn("refresh bind failed", zap.Error(err))
 		response.BadRequest(c, "刷新令牌参数不合法")
 		return
 	}
@@ -109,7 +172,7 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 			response.Unauthorized(c, "刷新令牌无效或已过期")
 			return
 		}
-		h.log.Error("refresh failed", zap.Error(err))
+		reqLogger.Error("refresh failed", zap.String("refresh_token", applog.MaskToken(req.RefreshToken)), zap.Error(err))
 		response.InternalError(c, "服务器内部错误")
 		return
 	}
@@ -130,17 +193,34 @@ func (h *AuthHandler) Refresh(c *gin.Context) {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /auth/logout [post]
 func (h *AuthHandler) Logout(c *gin.Context) {
+	reqLogger := h.reqLogger(c, "logout")
+
 	var req service.RefreshRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		reqLogger.Warn("logout bind failed", zap.Error(err))
 		response.BadRequest(c, "刷新令牌参数不合法")
 		return
 	}
 
 	if err := h.svc.Logout(c.Request.Context(), &req); err != nil {
-		h.log.Error("logout failed", zap.Error(err))
+		reqLogger.Error("logout failed", zap.String("refresh_token", applog.MaskToken(req.RefreshToken)), zap.Error(err))
+		applog.Audit(
+			c.Request.Context(),
+			"auth",
+			"logout_failed",
+			"user logout failed",
+			zap.Error(err),
+		)
 		response.InternalError(c, "服务器内部错误")
 		return
 	}
+
+	applog.Audit(
+		c.Request.Context(),
+		"auth",
+		"logout_success",
+		"user logout success",
+	)
 
 	response.OK(c, nil)
 }

@@ -201,6 +201,11 @@ function goToProfile() {
   router.push("/profile");
 }
 
+function goToLogs() {
+  isUserMenuOpen.value = false;
+  router.push("/logs");
+}
+
 function handleLogout() {
   isUserMenuOpen.value = false;
   authStore.logoutSync();
@@ -320,6 +325,12 @@ function handleLogout() {
             v-if="isUserMenuOpen"
             class="absolute right-0 top-12 w-40 bg-[#0b1219]/95 border border-white/10 rounded-xl p-1.5 shadow-[0_14px_40px_rgba(0,0,0,0.35)]"
           >
+            <button
+              class="w-full text-left px-3 py-2 text-sm text-white/75 rounded-lg hover:bg-white/8 transition-colors"
+              @click="goToLogs"
+            >
+              {{ t("tasks.logCenter") }}
+            </button>
             <button
               class="w-full text-left px-3 py-2 text-sm text-white/75 rounded-lg hover:bg-white/8 transition-colors"
               @click="goToProfile"
@@ -472,11 +483,11 @@ function handleLogout() {
 
           <div
             v-if="taskStore.tasks.length > 0"
-            class="grid gap-4"
+            class="grid"
             :class="
               viewMode === 'card'
-                ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
-                : 'grid-cols-1'
+                ? 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'
+                : 'grid-cols-1 gap-2.5'
             "
           >
             <TaskCard

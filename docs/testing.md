@@ -106,7 +106,7 @@ def test_create_task(base_url, headers):
     """创建任务成功"""
     resp = requests.post(f"{base_url}/tasks", json={
         "title": "自动化测试任务",
-        "priority": "high"
+        "priority": "urgent"
     }, headers=headers)
     assert resp.status_code == 200
     data = resp.json()["data"]

@@ -47,7 +47,7 @@ type Task struct {
     Title       string             `bson:"title"          json:"title"`
     Description string             `bson:"description"    json:"description"`
     Status      string             `bson:"status"         json:"status"`      // "todo"|"in_progress"|"done"
-    Priority    string             `bson:"priority"       json:"priority"`    // "low"|"medium"|"high"
+    Priority    string             `bson:"priority"       json:"priority"`    // "critical"|"important"|"urgent"|"routine"|"low"
     DueAt       *time.Time         `bson:"due_at"         json:"due_at"`
     IsDeleted   bool               `bson:"is_deleted"     json:"-"`
     DeletedAt   *time.Time         `bson:"deleted_at"     json:"-"`
@@ -98,6 +98,6 @@ type TokenBlacklist struct {
 | 字段 | 可选值 |
 |------|--------|
 | `tasks.status` | `todo` / `in_progress` / `done` |
-| `tasks.priority` | `low` / `medium` / `high` |
+| `tasks.priority` | `critical` / `important` / `urgent` / `routine` / `low` |
 | `users.language` | `zh` / `en` |
 | `users.theme` | `cyan` / `purple` / `green` / `pink` |

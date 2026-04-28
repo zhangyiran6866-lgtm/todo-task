@@ -7,6 +7,7 @@ import (
 
 	"todotask/backend/pkg/config"
 	"todotask/backend/pkg/jwt"
+	applog "todotask/backend/pkg/logger"
 	"todotask/backend/pkg/response"
 )
 
@@ -38,7 +39,9 @@ func JWTAuth(cfg *config.JWTConfig) gin.HandlerFunc {
 		}
 
 		// Set the UserID in the context for downstream handlers
-		c.Set(CtxUserIDKey, claims.UserID.Hex())
+		userID := claims.UserID.Hex()
+		c.Set(CtxUserIDKey, userID)
+		c.Request = c.Request.WithContext(applog.WithUserID(c.Request.Context(), userID))
 		c.Next()
 	}
 }

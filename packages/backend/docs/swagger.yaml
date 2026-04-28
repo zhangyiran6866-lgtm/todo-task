@@ -1,4 +1,42 @@
 definitions:
+  todotask_backend_internal_model.LogEntry:
+    properties:
+      action:
+        type: string
+      channel:
+        type: string
+      client_ip:
+        type: string
+      error:
+        type: string
+      id:
+        type: string
+      latency_ms:
+        type: integer
+      level:
+        type: string
+      message:
+        type: string
+      method:
+        type: string
+      module:
+        type: string
+      path:
+        type: string
+      raw:
+        additionalProperties: true
+        type: object
+      request_id:
+        type: string
+      route:
+        type: string
+      status_code:
+        type: integer
+      timestamp:
+        type: string
+      user_id:
+        type: string
+    type: object
   todotask_backend_internal_model.Task:
     properties:
       created_at:
@@ -62,6 +100,15 @@ definitions:
         type: string
     required:
     - title
+    type: object
+  todotask_backend_internal_service.ListLogsResp:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/todotask_backend_internal_model.LogEntry'
+        type: array
+      next_cursor:
+        type: string
     type: object
   todotask_backend_internal_service.ListTasksResp:
     properties:
@@ -291,6 +338,122 @@ paths:
       summary: 用户注册
       tags:
       - Auth
+  /logs:
+    get:
+      consumes:
+      - application/json
+      description: Query structured logs with channel/level/module/keyword/time range
+        filters
+      parameters:
+      - description: 'Log channel: app|error|audit'
+        in: query
+        name: channel
+        type: string
+      - description: 'Log level: debug|info|warn|error'
+        in: query
+        name: level
+        type: string
+      - description: Log module
+        in: query
+        name: module
+        type: string
+      - description: Keyword full text search
+        in: query
+        name: keyword
+        type: string
+      - description: Start time (RFC3339 or yyyy-mm-dd)
+        in: query
+        name: start_at
+        type: string
+      - description: End time (RFC3339 or yyyy-mm-dd)
+        in: query
+        name: end_at
+        type: string
+      - description: Page size (default 20, max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: Pagination cursor (offset)
+        in: query
+        name: cursor
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved logs
+          schema:
+            allOf:
+            - $ref: '#/definitions/todotask_backend_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/todotask_backend_internal_service.ListLogsResp'
+              type: object
+        "400":
+          description: Invalid query parameters
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 查询日志列表
+      tags:
+      - Logs
+  /logs/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get full structured log content by id
+      parameters:
+      - description: Log ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Log channel: app|error|audit'
+        in: query
+        name: channel
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved log detail
+          schema:
+            allOf:
+            - $ref: '#/definitions/todotask_backend_pkg_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/todotask_backend_internal_model.LogEntry'
+              type: object
+        "400":
+          description: Invalid log id
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "404":
+          description: Log not found
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/todotask_backend_pkg_response.Response'
+      security:
+      - BearerAuth: []
+      summary: 获取日志详情
+      tags:
+      - Logs
   /tasks:
     get:
       consumes:

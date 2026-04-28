@@ -1,12 +1,19 @@
 import request from "@/utils/request";
 
+export type TaskPriority =
+  | "critical"
+  | "important"
+  | "urgent"
+  | "routine"
+  | "low";
+
 export interface Task {
   id: string;
   user_id: string;
   title: string;
   description: string;
   status: "todo" | "in_progress" | "done";
-  priority: "low" | "important" | "urgent" | "critical" | "routine";
+  priority: TaskPriority;
   due_at: string | null;
   created_at: string;
   updated_at: string;
@@ -27,14 +34,14 @@ export interface ListTasksResp {
 export interface CreateTaskReq {
   title: string;
   description?: string;
-  priority?: string;
+  priority?: TaskPriority;
   due_at?: string;
 }
 
 export interface UpdateTaskReq {
   title?: string;
   status?: string;
-  priority?: string;
+  priority?: TaskPriority;
   due_at?: string;
   description?: string;
 }

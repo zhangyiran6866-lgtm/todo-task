@@ -36,8 +36,14 @@ type JWTConfig struct {
 }
 
 type LogConfig struct {
-	Level  string `mapstructure:"level"`
-	Format string `mapstructure:"format"`
+	Level         string `mapstructure:"level"`
+	Format        string `mapstructure:"format"`
+	AppPath       string `mapstructure:"app_path"`
+	ErrorPath     string `mapstructure:"error_path"`
+	AuditPath     string `mapstructure:"audit_path"`
+	RetentionDays int    `mapstructure:"retention_days"`
+	Compress      bool   `mapstructure:"compress"`
+	Stdout        bool   `mapstructure:"stdout"`
 }
 
 // Load 从指定路径加载配置文件

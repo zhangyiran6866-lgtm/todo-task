@@ -188,17 +188,19 @@ POST /tasks
 {
   "title": "完成接口文档",
   "description": "编写所有 API 接口说明",
-  "priority": "high",
+  "priority": "critical",
   "due_at": "2024-12-31T23:59:59Z"
 }
 ```
+
+`priority` 可选值：`critical` / `important` / `urgent` / `routine` / `low`
 
 ---
 
 ### 3.2 获取任务列表
 
 ```
-GET /tasks?status=todo&priority=high&limit=20&cursor=<last_id>
+GET /tasks?status=todo&priority=urgent&limit=20&cursor=<last_id>
 ```
 
 **Query 参数**
@@ -206,7 +208,7 @@ GET /tasks?status=todo&priority=high&limit=20&cursor=<last_id>
 | 参数 | 类型 | 说明 |
 |------|------|------|
 | `status` | string | 可选，过滤状态 |
-| `priority` | string | 可选，过滤优先级 |
+| `priority` | string | 可选，过滤优先级（`critical`/`important`/`urgent`/`routine`/`low`） |
 | `limit` | int | 默认 20，最大 50 |
 | `cursor` | string | 游标分页，上一页最后一条 `id` |
 
@@ -244,7 +246,7 @@ PATCH /tasks/:id
 {
   "title": "新标题",
   "status": "in_progress",
-  "priority": "medium"
+  "priority": "important"
 }
 ```
 
@@ -260,7 +262,78 @@ DELETE /tasks/:id
 
 ---
 
-## 四、错误码速查
+## 四、日志模块 `/logs` 🔒
+
+> 以下接口均需要 `Authorization` Header
+
+### 4.1 查询日志列表
+
+```
+GET /logs?channel=app&level=error&module=task&keyword=timeout&start_at=2026-04-27T00:00:00Z&end_at=2026-04-27T23:59:59Z&page=1&page_size=20
+```
+
+**Query 参数**
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `channel` | string | 可选，日志通道：`app`/`error`/`audit` |
+| `level` | string | 可选，日志级别：`debug`/`info`/`warn`/`error` |
+| `module` | string | 可选，模块过滤（如 `auth`、`task`） |
+| `keyword` | string | 可选，关键词模糊检索 |
+| `start_at` | string | 可选，开始时间（RFC3339 或 `yyyy-mm-dd`） |
+| `end_at` | string | 可选，结束时间（RFC3339 或 `yyyy-mm-dd`） |
+| `page` | int | 页码，从 1 开始，默认 1 |
+| `page_size` | int | 每页条数，默认 20，最大 100 |
+| `limit` | int | 兼容字段，等价 `page_size` |
+| `cursor` | string | 兼容字段，偏移游标分页（不推荐） |
+
+**Response**
+
+```json
+{
+  "code": 0,
+  "message": "成功",
+  "data": {
+    "items": [
+      {
+        "id": "2fa2c1...",
+        "channel": "app",
+        "timestamp": "2026-04-27T10:22:11.120+08:00",
+        "level": "info",
+        "module": "task",
+        "action": "list_tasks",
+        "message": "http request completed",
+        "request_id": "d6f84d2a..."
+      }
+    ],
+    "pagination": {
+      "total": 126,
+      "page": 1,
+      "page_size": 20,
+      "total_pages": 7,
+      "has_next": true,
+      "has_prev": false
+    }
+  }
+}
+```
+
+---
+
+### 4.2 获取日志详情
+
+```
+GET /logs/:id?channel=app
+```
+
+**说明**
+
+- `id` 来自日志列表 `items[].id`
+- `channel` 可选，传入后可缩小检索范围并提升查询速度
+
+---
+
+## 五、错误码速查
 
 | code | HTTP Status | 含义 |
 |------|------------|------|

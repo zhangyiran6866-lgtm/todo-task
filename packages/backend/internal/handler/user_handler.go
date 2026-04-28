@@ -11,6 +11,7 @@ import (
 	_ "todotask/backend/internal/model"
 	"todotask/backend/internal/repository"
 	"todotask/backend/internal/service"
+	applog "todotask/backend/pkg/logger"
 	"todotask/backend/pkg/response"
 )
 
@@ -23,23 +24,32 @@ func NewUserHandler(svc service.UserService, log *zap.Logger) *UserHandler {
 	return &UserHandler{svc: svc, log: log}
 }
 
-func (h *UserHandler) getCurrentUserID(c *gin.Context) (bson.ObjectID, bool) {
-	userIdV, exists := c.Get(middleware.CtxUserIDKey)
+func (h *UserHandler) reqLogger(c *gin.Context, action string) *zap.Logger {
+	return applog.WithContext(h.log, c.Request.Context()).With(
+		zap.String(applog.FieldModule, "user"),
+		zap.String(applog.FieldAction, action),
+	)
+}
+
+func (h *UserHandler) getCurrentUserID(c *gin.Context, action string) (bson.ObjectID, bool) {
+	reqLogger := h.reqLogger(c, action)
+
+	userIDValue, exists := c.Get(middleware.CtxUserIDKey)
 	if !exists {
 		response.Unauthorized(c, "用户未登录")
 		return bson.NilObjectID, false
 	}
 
-	idStr, ok := userIdV.(string)
+	idStr, ok := userIDValue.(string)
 	if !ok {
-		h.log.Error("invalid user_id type in context", zap.Any("type", userIdV))
+		reqLogger.Error("invalid user_id type in context", zap.Any("user_id", userIDValue))
 		response.InternalError(c, "服务器内部错误")
 		return bson.NilObjectID, false
 	}
 
 	id, err := bson.ObjectIDFromHex(idStr)
 	if err != nil {
-		h.log.Error("invalid user_id format in context", zap.String("id", idStr), zap.Error(err))
+		reqLogger.Error("invalid user_id format in context", zap.String("user_id", idStr), zap.Error(err))
 		response.InternalError(c, "服务器内部错误")
 		return bson.NilObjectID, false
 	}
@@ -60,7 +70,9 @@ func (h *UserHandler) getCurrentUserID(c *gin.Context) (bson.ObjectID, bool) {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /users/me [get]
 func (h *UserHandler) GetMe(c *gin.Context) {
-	id, ok := h.getCurrentUserID(c)
+	reqLogger := h.reqLogger(c, "get_me")
+
+	id, ok := h.getCurrentUserID(c, "get_me")
 	if !ok {
 		return
 	}
@@ -71,7 +83,7 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 			response.NotFound(c, "用户不存在")
 			return
 		}
-		h.log.Error("get me failed", zap.Error(err))
+		reqLogger.Error("get me failed", zap.Error(err))
 		response.InternalError(c, "服务器内部错误")
 		return
 	}
@@ -94,13 +106,16 @@ func (h *UserHandler) GetMe(c *gin.Context) {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /users/me [patch]
 func (h *UserHandler) UpdateMe(c *gin.Context) {
-	id, ok := h.getCurrentUserID(c)
+	reqLogger := h.reqLogger(c, "update_me")
+
+	id, ok := h.getCurrentUserID(c, "update_me")
 	if !ok {
 		return
 	}
 
 	var req service.UpdateProfileRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		reqLogger.Warn("update me bind failed", zap.Error(err))
 		response.BadRequest(c, "请求参数不合法")
 		return
 	}
@@ -119,7 +134,7 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 			response.NotFound(c, "用户不存在")
 			return
 		}
-		h.log.Error("update me failed", zap.Error(err))
+		reqLogger.Error("update me failed", zap.Error(err))
 		response.InternalError(c, "服务器内部错误")
 		return
 	}
@@ -142,19 +157,29 @@ func (h *UserHandler) UpdateMe(c *gin.Context) {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /users/me/password [put]
 func (h *UserHandler) ChangePassword(c *gin.Context) {
-	id, ok := h.getCurrentUserID(c)
+	reqLogger := h.reqLogger(c, "change_password")
+
+	id, ok := h.getCurrentUserID(c, "change_password")
 	if !ok {
 		return
 	}
 
 	var req service.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
+		reqLogger.Warn("change password bind failed", zap.Error(err))
 		response.BadRequest(c, "请求参数不合法")
 		return
 	}
 
 	if err := h.svc.ChangePassword(c.Request.Context(), id, &req); err != nil {
 		if errors.Is(err, service.ErrInvalidPassword) {
+			applog.Audit(
+				c.Request.Context(),
+				"user",
+				"change_password_failed",
+				"user password change failed: invalid old password",
+				zap.String("user_id", id.Hex()),
+			)
 			response.Unauthorized(c, "旧密码错误")
 			return
 		}
@@ -166,10 +191,26 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 			response.NotFound(c, "用户不存在")
 			return
 		}
-		h.log.Error("change password failed", zap.Error(err))
+		reqLogger.Error("change password failed", zap.String("old_password", applog.MaskPassword(req.OldPassword)), zap.Error(err))
+		applog.Audit(
+			c.Request.Context(),
+			"user",
+			"change_password_error",
+			"user password change error",
+			zap.String("user_id", id.Hex()),
+			zap.Error(err),
+		)
 		response.InternalError(c, "服务器内部错误")
 		return
 	}
+
+	applog.Audit(
+		c.Request.Context(),
+		"user",
+		"change_password_success",
+		"user password changed",
+		zap.String("user_id", id.Hex()),
+	)
 
 	response.OK(c, nil)
 }

@@ -6,9 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	"todotask/backend/internal/middleware"
 	_ "todotask/backend/internal/model"
 	"todotask/backend/internal/repository"
 	"todotask/backend/internal/service"
+	applog "todotask/backend/pkg/logger"
 	"todotask/backend/pkg/response"
 )
 
@@ -24,13 +26,26 @@ func NewTaskHandler(svc service.TaskService, logger *zap.Logger) *TaskHandler {
 	}
 }
 
+func (h *TaskHandler) reqLogger(c *gin.Context, action string) *zap.Logger {
+	return applog.WithContext(h.logger, c.Request.Context()).With(
+		zap.String(applog.FieldModule, "task"),
+		zap.String(applog.FieldAction, action),
+	)
+}
+
 func (h *TaskHandler) getUID(c *gin.Context) (string, bool) {
-	uid, exists := c.Get("user_id")
+	uid, exists := c.Get(middleware.CtxUserIDKey)
 	if !exists {
 		response.Unauthorized(c, "用户未登录")
 		return "", false
 	}
-	return uid.(string), true
+	uidStr, ok := uid.(string)
+	if !ok || uidStr == "" {
+		h.reqLogger(c, "resolve_user").Error("invalid user id in context", zap.Any("user_id", uid))
+		response.InternalError(c, "服务器内部错误")
+		return "", false
+	}
+	return uidStr, true
 }
 
 // CreateTask godoc
@@ -47,6 +62,8 @@ func (h *TaskHandler) getUID(c *gin.Context) (string, bool) {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /tasks [post]
 func (h *TaskHandler) CreateTask(c *gin.Context) {
+	reqLogger := h.reqLogger(c, "create_task")
+
 	uid, ok := h.getUID(c)
 	if !ok {
 		return
@@ -54,14 +71,14 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 
 	var req service.CreateTaskReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.logger.Warn("create task bind error", zap.Error(err))
+		reqLogger.Warn("create task bind error", zap.Error(err))
 		response.BadRequest(c, "请求参数不合法")
 		return
 	}
 
 	task, err := h.svc.CreateTask(c.Request.Context(), uid, &req)
 	if err != nil {
-		h.logger.Error("create task failed", zap.Error(err))
+		reqLogger.Error("create task failed", zap.Error(err))
 		response.InternalError(c, "创建任务失败")
 		return
 	}
@@ -86,6 +103,8 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /tasks [get]
 func (h *TaskHandler) ListTasks(c *gin.Context) {
+	reqLogger := h.reqLogger(c, "list_tasks")
+
 	uid, ok := h.getUID(c)
 	if !ok {
 		return
@@ -99,7 +118,7 @@ func (h *TaskHandler) ListTasks(c *gin.Context) {
 
 	resp, err := h.svc.ListTasks(c.Request.Context(), uid, &req)
 	if err != nil {
-		h.logger.Error("list tasks failed", zap.Error(err))
+		reqLogger.Error("list tasks failed", zap.Error(err))
 		response.InternalError(c, "获取任务列表失败")
 		return
 	}
@@ -123,6 +142,8 @@ func (h *TaskHandler) ListTasks(c *gin.Context) {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /tasks/{id} [get]
 func (h *TaskHandler) GetTask(c *gin.Context) {
+	reqLogger := h.reqLogger(c, "get_task")
+
 	uid, ok := h.getUID(c)
 	if !ok {
 		return
@@ -148,7 +169,7 @@ func (h *TaskHandler) GetTask(c *gin.Context) {
 			response.BadRequest(c, "任务 ID 格式不正确")
 			return
 		}
-		h.logger.Error("get task failed", zap.Error(err))
+		reqLogger.Error("get task failed", zap.Error(err))
 		response.InternalError(c, "获取任务失败")
 		return
 	}
@@ -173,6 +194,8 @@ func (h *TaskHandler) GetTask(c *gin.Context) {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /tasks/{id} [patch]
 func (h *TaskHandler) UpdateTask(c *gin.Context) {
+	reqLogger := h.reqLogger(c, "update_task")
+
 	uid, ok := h.getUID(c)
 	if !ok {
 		return
@@ -186,7 +209,7 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 
 	var req service.UpdateTaskReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.logger.Warn("update task bind error", zap.Error(err))
+		reqLogger.Warn("update task bind error", zap.Error(err))
 		response.BadRequest(c, "请求参数不合法")
 		return
 	}
@@ -205,7 +228,7 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 			response.BadRequest(c, "任务 ID 格式不正确")
 			return
 		}
-		h.logger.Error("update task failed", zap.Error(err))
+		reqLogger.Error("update task failed", zap.Error(err))
 		response.InternalError(c, "更新任务失败")
 		return
 	}
@@ -229,6 +252,8 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 // @Failure 500 {object} response.Response "Internal server error"
 // @Router /tasks/{id} [delete]
 func (h *TaskHandler) DeleteTask(c *gin.Context) {
+	reqLogger := h.reqLogger(c, "delete_task")
+
 	uid, ok := h.getUID(c)
 	if !ok {
 		return
@@ -254,10 +279,26 @@ func (h *TaskHandler) DeleteTask(c *gin.Context) {
 			response.BadRequest(c, "任务 ID 格式不正确")
 			return
 		}
-		h.logger.Error("delete task failed", zap.Error(err))
+		reqLogger.Error("delete task failed", zap.Error(err))
+		applog.Audit(
+			c.Request.Context(),
+			"task",
+			"delete_failed",
+			"task delete failed",
+			zap.String("task_id", taskID),
+			zap.Error(err),
+		)
 		response.InternalError(c, "删除任务失败")
 		return
 	}
+
+	applog.Audit(
+		c.Request.Context(),
+		"task",
+		"delete_success",
+		"task deleted",
+		zap.String("task_id", taskID),
+	)
 
 	response.OK(c, nil)
 }

@@ -11,6 +11,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs/promises';
+import https from 'https';
 import { fileURLToPath } from 'url';
 
 const execAsync = promisify(exec);
@@ -104,6 +105,24 @@ class ApifoxMcpServer {
               projectId: {
                 type: 'string',
                 description: 'The Project ID in Apifox (NOT the Team ID). Find it in Project Settings -> Basic Settings.'
+              },
+              options: {
+                type: 'object',
+                properties: {
+                  tls: {
+                    type: 'object',
+                    properties: {
+                      caCertPath: {
+                        type: 'string',
+                        description: 'Optional CA certificate path (PEM) for TLS verification in custom network environments.'
+                      },
+                      allowInsecureTLS: {
+                        type: 'boolean',
+                        description: 'Temporary local troubleshooting only. Disables TLS certificate verification.'
+                      }
+                    }
+                  }
+                }
               }
             },
             required: ['apifoxToken', 'projectId']
@@ -117,13 +136,23 @@ class ApifoxMcpServer {
         throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${request.params.name}`);
       }
 
-      const args = request.params.arguments as { apifoxToken?: string, projectId?: string };
+      const args = request.params.arguments as {
+        apifoxToken?: string;
+        projectId?: string;
+        options?: {
+          tls?: {
+            caCertPath?: string;
+            allowInsecureTLS?: boolean;
+          };
+        };
+      };
       if (!args.apifoxToken || !args.projectId) {
         throw new McpError(ErrorCode.InvalidParams, 'apifoxToken and projectId arguments are required');
       }
 
       const token = args.apifoxToken;
       const projectId = args.projectId;
+      const tlsOptions = args.options?.tls ?? {};
 
       try {
         const backendPath = await locateBackendPath();
@@ -143,11 +172,23 @@ class ApifoxMcpServer {
         const swaggerDoc = JSON.parse(swaggerData);
         const importFormat = detectImportFormat(swaggerDoc);
 
+        let httpsAgent: https.Agent | undefined;
+        if (tlsOptions.caCertPath) {
+          const ca = await fs.readFile(tlsOptions.caCertPath, 'utf-8');
+          httpsAgent = new https.Agent({
+            rejectUnauthorized: !tlsOptions.allowInsecureTLS,
+            ca,
+          });
+        } else if (tlsOptions.allowInsecureTLS) {
+          httpsAgent = new https.Agent({ rejectUnauthorized: false });
+        }
+
         const axiosClient = axios.create({
           headers: {
             'Authorization': `Bearer ${token}`,
             'X-Apifox-Api-Version': '2024-03-28'
-          }
+          },
+          httpsAgent,
         });
 
         console.error(`Uploading ${importFormat} data to project ${projectId}...`);
@@ -171,6 +212,24 @@ class ApifoxMcpServer {
         };
 
       } catch (error: any) {
+        const message = error?.message || '';
+        if (message.includes('unable to get local issuer certificate') || message.includes('self signed certificate')) {
+          return {
+            content: [
+              {
+                type: 'text',
+                text: [
+                  'Failed to sync to Apifox: TLS certificate validation failed.',
+                  'Fix options:',
+                  '1) Provide options.tls.caCertPath with a valid root/intermediate CA PEM file.',
+                  '2) For local troubleshooting only, set options.tls.allowInsecureTLS=true.',
+                ].join(' '),
+              },
+            ],
+            isError: true,
+          };
+        }
+
         console.error('[Apifox Sync Error]', error.response?.data || error.message);
         return {
           content: [

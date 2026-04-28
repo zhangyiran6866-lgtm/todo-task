@@ -1,18 +1,22 @@
 <template>
   <div
     class="task-card bg-glass rounded-xl cursor-pointer relative overflow-hidden transition-all duration-300"
-    :class="[viewMode === 'list' ? 'p-5' : 'p-4', { 'opacity-60': task.status === 'done' }]"
+    :class="[viewMode === 'list' ? 'px-4 py-3' : 'p-4', { 'opacity-60': task.status === 'done' }]"
     @click="goToDetail"
     @contextmenu.prevent="emit('contextmenu', $event, task)"
   >
-    <div class="flex items-start gap-3">
+    <div
+      class="flex items-start"
+      :class="viewMode === 'list' ? 'gap-2.5' : 'gap-3'"
+    >
       <button
-        class="mt-1 flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center transition-colors duration-200 focus:outline-none"
-        :class="
+        class="flex-shrink-0 rounded-full border flex items-center justify-center transition-colors duration-200 focus:outline-none"
+        :class="[
+          viewMode === 'list' ? 'mt-0.5 w-4 h-4' : 'mt-1 w-5 h-5',
           task.status === 'done'
             ? 'bg-neon bg-opacity-20 border-neon text-neon'
-            : 'border-white/20 hover:border-neon'
-        "
+            : 'border-white/20 hover:border-neon',
+        ]"
         @click.stop="toggleStatus"
       >
         <Check
@@ -27,7 +31,7 @@
         <h3
           class="font-medium text-white truncate transition-all duration-200"
           :class="[
-            viewMode === 'list' ? 'text-xl' : 'text-lg',
+            viewMode === 'list' ? 'text-base' : 'text-lg',
             { 'line-through text-white/50': task.status === 'done' },
           ]"
         >
@@ -35,21 +39,25 @@
         </h3>
         <p
           v-if="task.description"
-          class="mt-1 text-sm text-white/60 line-clamp-2"
+          class="text-white/60"
+          :class="viewMode === 'list' ? 'mt-0.5 text-xs line-clamp-1' : 'mt-1 text-sm line-clamp-2'"
         >
           {{ task.description }}
         </p>
 
         <div
           v-if="task.due_at"
-          class="mt-3 flex items-center gap-1.5 text-xs"
-          :class="dueDateColor"
+          class="flex items-center gap-1.5 text-xs"
+          :class="[viewMode === 'list' ? 'mt-2' : 'mt-3', dueDateColor]"
         >
           <Calendar class="w-3.5 h-3.5" />
           <span>{{ t('tasks.dueDateShort') }}{{ formattedDate }}</span>
         </div>
 
-        <div class="mt-4 flex items-center justify-between gap-3 text-xs">
+        <div
+          class="flex items-center justify-between gap-3 text-xs"
+          :class="viewMode === 'list' ? 'mt-2.5' : 'mt-4'"
+        >
           <div
             class="px-2 py-1 rounded-md border"
             :class="statusTagClass"
