@@ -82,6 +82,8 @@ export default {
     unset: "未设置",
     notFound: "任务不存在或无权限访问",
     delete: "删除任务",
+    completeConfirm: "确认要完成当前任务吗？完成后将不可再修改。",
+    completedReadonly: "任务已完成，无法修改",
     deleteConfirm: "删除后不可恢复，确认删除该任务吗？",
     detailTitlePlaceholder: "输入任务标题",
     detailDescriptionPlaceholder: "输入任务描述",

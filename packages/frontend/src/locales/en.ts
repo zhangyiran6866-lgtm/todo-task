@@ -82,6 +82,8 @@ export default {
     unset: "Not set",
     notFound: "Task not found or inaccessible",
     delete: "Delete task",
+    completeConfirm: "Mark this task as done? Completed tasks can no longer be edited.",
+    completedReadonly: "Completed tasks are read-only",
     deleteConfirm: "This action cannot be undone. Delete this task?",
     detailTitlePlaceholder: "Enter task title",
     detailDescriptionPlaceholder: "Enter task description",

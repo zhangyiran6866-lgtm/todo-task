@@ -12,7 +12,6 @@ import {
   LayoutGrid,
   ListTodo,
   Palette,
-  PlayCircle,
   Plus,
   Rows3,
 } from "lucide-vue-next";
@@ -41,11 +40,11 @@ const languageMenuRef = ref<HTMLElement | null>(null);
 const isUserMenuOpen = ref(false);
 const isThemeMenuOpen = ref(false);
 const isLanguageMenuOpen = ref(false);
+const completingTaskId = ref<string | null>(null);
 
 const statusOptions = computed(() => [
   { label: t("tasks.statusAll"), value: "", icon: ListTodo },
   { label: t("tasks.statusTodo"), value: "todo", icon: Circle },
-  { label: t("tasks.statusInProgress"), value: "in_progress", icon: PlayCircle },
   { label: t("tasks.statusExpired"), value: "expired", icon: AlertCircle },
   { label: t("tasks.statusDone"), value: "done", icon: CheckCircle2 },
 ]);
@@ -91,6 +90,28 @@ const displayUserName = computed(
 const userInitial = computed(() =>
   displayUserName.value.trim().charAt(0).toUpperCase(),
 );
+
+const sortedTasks = computed(() => {
+  const getRank = (task: Task) => {
+    const isDone = task.status === "done";
+    const isExpired =
+      !isDone && Boolean(task.due_at) && new Date(task.due_at as string).getTime() < Date.now();
+    if (!isDone && !isExpired) return 0; // 未完成
+    if (isExpired) return 1; // 已过期
+    return 2; // 已完成
+  };
+
+  return [...taskStore.tasks].sort((a, b) => {
+    const rankDiff = getRank(a) - getRank(b);
+    if (rankDiff !== 0) return rankDiff;
+
+    const aDue = a.due_at ? new Date(a.due_at).getTime() : Number.POSITIVE_INFINITY;
+    const bDue = b.due_at ? new Date(b.due_at).getTime() : Number.POSITIVE_INFINITY;
+    if (aDue !== bDue) return aDue - bDue;
+
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+  });
+});
 
 onMounted(async () => {
   window.addEventListener("resize", handleResize);
@@ -141,6 +162,18 @@ function handleResize() {
 
 function handleUpdateStatus(id: string, status: "todo" | "in_progress" | "done") {
   taskStore.updateTask(id, { status });
+}
+
+function handleRequestComplete(id: string) {
+  if (completingTaskId.value) return;
+  completingTaskId.value = id;
+  window.setTimeout(async () => {
+    try {
+      await taskStore.updateTask(id, { status: "done" });
+    } finally {
+      completingTaskId.value = null;
+    }
+  }, 320);
 }
 
 function handleContextMenu(_event: MouseEvent, _task: Task) {
@@ -481,8 +514,10 @@ function handleLogout() {
             </div>
           </div>
 
-          <div
+          <TransitionGroup
             v-if="taskStore.tasks.length > 0"
+            name="task-sort"
+            tag="div"
             class="grid"
             :class="
               viewMode === 'card'
@@ -491,14 +526,16 @@ function handleLogout() {
             "
           >
             <TaskCard
-              v-for="task in taskStore.tasks"
+              v-for="task in sortedTasks"
               :key="task.id"
               :task="task"
               :view-mode="viewMode"
+              :completing-task-id="completingTaskId"
               @update-status="handleUpdateStatus"
+              @request-complete="handleRequestComplete"
               @contextmenu="handleContextMenu"
             />
-          </div>
+          </TransitionGroup>
 
           <div
             v-else-if="!taskStore.isLoading"
@@ -534,3 +571,9 @@ function handleLogout() {
     <CreateTaskDrawer v-model="isDrawerOpen" />
   </div>
 </template>
+
+<style scoped>
+.task-sort-move {
+  transition: transform 220ms ease;
+}
+</style>

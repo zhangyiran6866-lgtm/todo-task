@@ -1,29 +1,68 @@
 <template>
   <div
-    class="task-card bg-glass rounded-xl cursor-pointer relative overflow-hidden transition-all duration-300"
-    :class="[viewMode === 'list' ? 'px-4 py-3' : 'p-4', { 'opacity-60': task.status === 'done' }]"
-    @click="goToDetail"
+    class="task-card bg-glass rounded-xl relative overflow-hidden transition-all duration-300"
+    :class="[
+      viewMode === 'list' ? 'px-4 py-3' : 'p-4',
+      {
+        'opacity-60': task.status === 'done',
+        'cursor-not-allowed': isOverdue,
+        'task-card--disabled': isOverdue,
+      },
+    ]"
     @contextmenu.prevent="emit('contextmenu', $event, task)"
   >
     <div
       class="flex items-start"
       :class="viewMode === 'list' ? 'gap-2.5' : 'gap-3'"
     >
+      <div
+        v-if="isOverdue"
+        class="flex-shrink-0 rounded-full flex items-center justify-center text-rose-500"
+        :class="viewMode === 'list' ? 'mt-0.5 w-4 h-4' : 'mt-1 w-5 h-5'"
+      >
+        <AlertTriangle
+          class="w-4 h-4"
+          stroke-width="2.5"
+        />
+      </div>
+
       <button
-        class="flex-shrink-0 rounded-full border flex items-center justify-center transition-colors duration-200 focus:outline-none"
+        v-else
+        class="task-check-trigger flex-shrink-0 rounded-full border flex items-center justify-center transition-colors duration-200 focus:outline-none relative overflow-visible"
         :class="[
           viewMode === 'list' ? 'mt-0.5 w-4 h-4' : 'mt-1 w-5 h-5',
-          task.status === 'done'
-            ? 'bg-neon bg-opacity-20 border-neon text-neon'
-            : 'border-white/20 hover:border-neon',
+          isCompleting
+            ? 'border-transparent bg-transparent'
+            : task.status === 'done'
+              ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+              : 'border-white/20 text-white/70 hover:border-neon',
         ]"
         @click.stop="toggleStatus"
       >
         <Check
-          v-if="task.status === 'done'"
-          class="w-3 h-3"
+          v-if="task.status === 'done' || isCompleting"
+          class="task-check-icon w-3 h-3"
+          :class="isCompleting ? 'task-check-icon--pop' : 'text-emerald-300'"
           stroke-width="3"
         />
+        <span
+          v-if="isCompleting"
+          class="task-burst"
+          aria-hidden="true"
+        >
+          <i
+            v-for="idx in 8"
+            :key="idx"
+            class="task-shard"
+            :style="{
+              '--shard-angle': `${shardAngles[idx - 1]}deg`,
+              '--shard-distance': `${shardDistances[idx - 1]}px`,
+              '--shard-delay': `${shardDelays[idx - 1]}ms`,
+              '--shard-scale': `${shardScales[idx - 1]}`,
+              '--shard-hue': `${shardHues[idx - 1]}`,
+            }"
+          />
+        </span>
       </button>
 
       <!-- Content -->
@@ -98,24 +137,25 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Calendar, AlertCircle, ArrowUpCircle, Check } from 'lucide-vue-next'
+import { Calendar, AlertCircle, AlertTriangle, ArrowUpCircle, Check } from 'lucide-vue-next'
 import type { Task } from '@/api/task'
 
 const props = withDefaults(defineProps<{
   task: Task
   viewMode?: 'card' | 'list'
+  completingTaskId?: string | null
 }>(), {
-  viewMode: 'card'
+  viewMode: 'card',
+  completingTaskId: null
 })
 
 const emit = defineEmits<{
   (e: 'update-status', id: string, status: 'todo' | 'in_progress' | 'done'): void
+  (e: 'request-complete', id: string): void
   (e: 'contextmenu', event: MouseEvent, task: Task): void
 }>()
 
-const router = useRouter()
 const { t } = useI18n()
 
 const priorityTagClass = computed(() => {
@@ -176,14 +216,23 @@ const formattedDate = computed(() => {
   })
 })
 
+const isCompleting = computed(() => props.completingTaskId === props.task.id)
+const shardAngles = [12, 58, 101, 147, 189, 234, 281, 328]
+const shardDistances = [18, 24, 20, 27, 22, 29, 19, 25]
+const shardDelays = [0, 10, 4, 14, 6, 18, 8, 12]
+const shardScales = [0.9, 1.15, 0.8, 1.25, 1, 1.2, 0.85, 1.1]
+const shardHues = [16, 48, 90, 172, 204, 258, 312, 346]
+
 function toggleStatus() {
-  const newStatus = props.task.status === 'done' ? 'todo' : 'done'
-  emit('update-status', props.task.id, newStatus)
+  if (isOverdue.value) return
+  if (props.task.status === 'done') {
+    emit('update-status', props.task.id, 'todo')
+    return
+  }
+  if (isCompleting.value) return
+  emit('request-complete', props.task.id)
 }
 
-function goToDetail() {
-  router.push(`/tasks/${props.task.id}`)
-}
 </script>
 
 <style scoped>
@@ -195,5 +244,66 @@ function goToDetail() {
   transform: translateY(-2px);
   border-color: var(--neon);
   box-shadow: 0 0 15px var(--neon-glow);
+}
+
+.task-card--disabled:hover {
+  transform: none;
+  border-color: var(--border-dim);
+  box-shadow: none;
+}
+
+.task-burst {
+  position: absolute;
+  inset: -18px;
+  pointer-events: none;
+}
+
+.task-shard {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 9px;
+  border-radius: 9999px;
+  transform-origin: center;
+  opacity: 0;
+  background: hsl(var(--shard-hue), 98%, 64%);
+  box-shadow: 0 0 6px currentColor;
+  color: hsl(var(--shard-hue), 98%, 64%);
+  animation: shard-burst 300ms ease-out forwards;
+  animation-delay: var(--shard-delay);
+}
+
+@keyframes shard-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--shard-angle)) translateY(0) scale(calc(0.8 * var(--shard-scale)));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--shard-angle)) translateY(calc(var(--shard-distance) * -1)) scale(calc(1.06 * var(--shard-scale)));
+  }
+}
+
+.task-check-icon--pop {
+  color: #34d399;
+  opacity: 0;
+  transform: scale(0.35);
+  animation: check-pop 220ms ease-out 110ms forwards;
+}
+
+@keyframes check-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 </style>
