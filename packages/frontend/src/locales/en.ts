@@ -46,6 +46,7 @@ export default {
   },
   tasks: {
     title: "Tasks",
+    pointCloudBoard: "Point Cloud",
     statusFilter: "Status",
     priorityFilter: "Priority",
     empty: "No tasks yet",
@@ -87,6 +88,24 @@ export default {
     deleteConfirm: "This action cannot be undone. Delete this task?",
     detailTitlePlaceholder: "Enter task title",
     detailDescriptionPlaceholder: "Enter task description",
+  },
+  pointCloud: {
+    title: "3D Point Cloud Dashboard",
+    backToTasks: "Back to task list",
+    datasetLabel: "Dataset",
+    statusLabel: "Render status",
+    pointsLabel: "Point count",
+    modelLabel: "Model",
+    shaderModeLabel: "Shader mode",
+    pointSizeLabel: "Point size",
+    autoRotateLabel: "Auto rotate",
+    webglUnsupported: "This browser does not support WebGL, so point cloud rendering is unavailable.",
+    status: {
+      idle: "Idle",
+      loading: "Loading",
+      ready: "Rendering",
+      error: "Load failed (no accessible model file found)",
+    },
   },
   logs: {
     title: "Log Center",

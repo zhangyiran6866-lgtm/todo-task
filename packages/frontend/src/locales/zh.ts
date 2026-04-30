@@ -46,6 +46,7 @@ export default {
   },
   tasks: {
     title: "任务列表",
+    pointCloudBoard: "点云看板",
     statusFilter: "任务状态",
     priorityFilter: "标签状态",
     empty: "暂无任务",
@@ -87,6 +88,24 @@ export default {
     deleteConfirm: "删除后不可恢复，确认删除该任务吗？",
     detailTitlePlaceholder: "输入任务标题",
     detailDescriptionPlaceholder: "输入任务描述",
+  },
+  pointCloud: {
+    title: "3D 点云看板",
+    backToTasks: "返回任务列表",
+    datasetLabel: "数据集",
+    statusLabel: "渲染状态",
+    pointsLabel: "点数量",
+    modelLabel: "模型",
+    shaderModeLabel: "Shader 模式",
+    pointSizeLabel: "点大小",
+    autoRotateLabel: "自动旋转",
+    webglUnsupported: "当前浏览器不支持 WebGL，无法渲染点云。",
+    status: {
+      idle: "待初始化",
+      loading: "加载中",
+      ready: "渲染中",
+      error: "加载失败（未找到可访问的模型文件）",
+    },
   },
   logs: {
     title: "日志中心",

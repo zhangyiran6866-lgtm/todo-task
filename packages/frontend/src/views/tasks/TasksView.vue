@@ -239,6 +239,10 @@ function goToLogs() {
   router.push("/logs");
 }
 
+function goToPointCloud() {
+  router.push("/point-cloud");
+}
+
 function handleLogout() {
   isUserMenuOpen.value = false;
   authStore.logoutSync();
@@ -263,6 +267,13 @@ function handleLogout() {
       </div>
 
       <div class="flex items-center gap-2 md:gap-3">
+        <button
+          class="rounded-full border border-white/10 px-3 py-1.5 text-sm text-white/80 transition-colors hover:border-neon hover:text-neon"
+          @click="goToPointCloud"
+        >
+          {{ t("tasks.pointCloudBoard") }}
+        </button>
+
         <div
           ref="languageMenuRef"
           class="relative"
