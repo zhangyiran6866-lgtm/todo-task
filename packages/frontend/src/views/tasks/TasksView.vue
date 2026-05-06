@@ -11,9 +11,14 @@ import {
   Globe,
   LayoutGrid,
   ListTodo,
+  Menu,
+  Orbit,
   Palette,
+  PenTool,
   Plus,
   Rows3,
+  SlidersHorizontal,
+  X,
 } from "lucide-vue-next";
 
 import type { Task } from "@/api/task";
@@ -40,6 +45,8 @@ const languageMenuRef = ref<HTMLElement | null>(null);
 const isUserMenuOpen = ref(false);
 const isThemeMenuOpen = ref(false);
 const isLanguageMenuOpen = ref(false);
+const isFeatureDrawerOpen = ref(false);
+const isAppearanceDrawerOpen = ref(false);
 const completingTaskId = ref<string | null>(null);
 
 const statusOptions = computed(() => [
@@ -157,6 +164,9 @@ function handleResize() {
   isMobile.value = window.innerWidth < 768;
   if (isMobile.value) {
     viewMode.value = "list";
+  } else {
+    isFeatureDrawerOpen.value = false;
+    isAppearanceDrawerOpen.value = false;
   }
 }
 
@@ -183,11 +193,13 @@ function handleContextMenu(_event: MouseEvent, _task: Task) {
 function setTheme(nextTheme: "cyan" | "purple" | "green" | "pink") {
   themeStore.setTheme(nextTheme);
   isThemeMenuOpen.value = false;
+  isAppearanceDrawerOpen.value = false;
 }
 
 function setLanguage(nextLanguage: "zh" | "en") {
   themeStore.setLanguage(nextLanguage);
   isLanguageMenuOpen.value = false;
+  isAppearanceDrawerOpen.value = false;
 }
 
 function toggleThemeMenu() {
@@ -240,7 +252,21 @@ function goToLogs() {
 }
 
 function goToPointCloud() {
+  isFeatureDrawerOpen.value = false;
   router.push("/point-cloud");
+}
+
+function goToImageAnnotator() {
+  isFeatureDrawerOpen.value = false;
+  router.push("/image-annotator");
+}
+
+function toggleFeatureDrawer() {
+  isFeatureDrawerOpen.value = !isFeatureDrawerOpen.value;
+}
+
+function toggleAppearanceDrawer() {
+  isAppearanceDrawerOpen.value = !isAppearanceDrawerOpen.value;
 }
 
 function handleLogout() {
@@ -256,6 +282,13 @@ function handleLogout() {
       class="h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-6 bg-glass sticky top-0 z-20"
     >
       <div class="flex items-center gap-3">
+        <button
+          class="md:hidden inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/80 transition-colors hover:border-neon hover:text-neon"
+          :aria-label="'feature-menu'"
+          @click="toggleFeatureDrawer"
+        >
+          <Menu class="h-4 w-4" />
+        </button>
         <div
           class="w-8 h-8 rounded-lg bg-neon/20 border border-neon flex items-center justify-center"
         >
@@ -268,15 +301,23 @@ function handleLogout() {
 
       <div class="flex items-center gap-2 md:gap-3">
         <button
-          class="rounded-full border border-white/10 px-3 py-1.5 text-sm text-white/80 transition-colors hover:border-neon hover:text-neon"
+          class="hidden md:inline-flex items-center gap-1.5 rounded-full border border-neon/60 bg-neon/10 px-3 py-1.5 text-sm text-neon transition-colors hover:bg-neon/20"
           @click="goToPointCloud"
         >
+          <Orbit class="h-3.5 w-3.5" />
           {{ t("tasks.pointCloudBoard") }}
+        </button>
+        <button
+          class="hidden md:inline-flex items-center gap-1.5 rounded-full border border-neon/60 bg-neon/10 px-3 py-1.5 text-sm text-neon transition-colors hover:bg-neon/20"
+          @click="goToImageAnnotator"
+        >
+          <PenTool class="h-3.5 w-3.5" />
+          {{ t("tasks.imageAnnotator") }}
         </button>
 
         <div
           ref="languageMenuRef"
-          class="relative"
+          class="relative hidden md:block"
         >
           <button
             class="flex items-center gap-2 px-2.5 py-1.5 rounded-full border border-white/10 hover:border-white/25 transition-colors"
@@ -308,7 +349,7 @@ function handleLogout() {
 
         <div
           ref="themeMenuRef"
-          class="relative"
+          class="relative hidden md:block"
         >
           <button
             class="flex items-center gap-2 px-2.5 py-1.5 rounded-full border border-white/10 hover:border-white/25 transition-colors"
@@ -345,6 +386,14 @@ function handleLogout() {
             </button>
           </div>
         </div>
+
+        <button
+          class="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/80 transition-colors hover:border-neon hover:text-neon"
+          :aria-label="'appearance-menu'"
+          @click="toggleAppearanceDrawer"
+        >
+          <SlidersHorizontal class="h-4 w-4" />
+        </button>
 
         <div
           ref="userMenuRef"
@@ -391,6 +440,125 @@ function handleLogout() {
         </div>
       </div>
     </header>
+
+    <Transition
+      enter-active-class="transition-opacity duration-200"
+      leave-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="isFeatureDrawerOpen && isMobile"
+        class="fixed inset-0 z-30 bg-black/45 md:hidden"
+        @click="isFeatureDrawerOpen = false"
+      />
+    </Transition>
+
+    <Transition
+      enter-active-class="transition-transform duration-200 ease-out"
+      leave-active-class="transition-transform duration-200 ease-in"
+      enter-from-class="-translate-x-full"
+      leave-to-class="-translate-x-full"
+    >
+      <aside
+        v-if="isFeatureDrawerOpen && isMobile"
+        class="fixed left-0 top-0 z-40 h-screen w-72 border-r border-white/10 bg-[#081018]/95 p-4 backdrop-blur-md md:hidden"
+      >
+        <div class="mb-4 flex items-center justify-between">
+          <p class="text-sm font-medium tracking-wide text-white/80">{{ t("common.appName") }}</p>
+          <button
+            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/70 transition-colors hover:border-neon hover:text-neon"
+            @click="isFeatureDrawerOpen = false"
+          >
+            <X class="h-4 w-4" />
+          </button>
+        </div>
+        <div class="space-y-2">
+          <button
+            class="inline-flex w-full items-center gap-2 rounded-xl border border-neon/60 bg-neon/10 px-3 py-2 text-left text-sm text-neon transition-colors hover:bg-neon/20"
+            @click="goToPointCloud"
+          >
+            <Orbit class="h-4 w-4" />
+            {{ t("tasks.pointCloudBoard") }}
+          </button>
+          <button
+            class="inline-flex w-full items-center gap-2 rounded-xl border border-neon/60 bg-neon/10 px-3 py-2 text-left text-sm text-neon transition-colors hover:bg-neon/20"
+            @click="goToImageAnnotator"
+          >
+            <PenTool class="h-4 w-4" />
+            {{ t("tasks.imageAnnotator") }}
+          </button>
+        </div>
+      </aside>
+    </Transition>
+
+    <Transition
+      enter-active-class="transition-opacity duration-200"
+      leave-active-class="transition-opacity duration-200"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
+    >
+      <div
+        v-if="isAppearanceDrawerOpen && isMobile"
+        class="fixed inset-0 z-30 bg-black/45 md:hidden"
+        @click="isAppearanceDrawerOpen = false"
+      />
+    </Transition>
+
+    <Transition
+      enter-active-class="transition-transform duration-200 ease-out"
+      leave-active-class="transition-transform duration-200 ease-in"
+      enter-from-class="translate-x-full"
+      leave-to-class="translate-x-full"
+    >
+      <aside
+        v-if="isAppearanceDrawerOpen && isMobile"
+        class="fixed right-0 top-0 z-40 h-screen w-72 border-l border-white/10 bg-[#081018]/95 p-4 backdrop-blur-md md:hidden"
+      >
+        <div class="mb-4 flex items-center justify-between">
+          <p class="text-sm font-medium tracking-wide text-white/80">{{ t("tasks.appearance") }}</p>
+          <button
+            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/70 transition-colors hover:border-neon hover:text-neon"
+            @click="isAppearanceDrawerOpen = false"
+          >
+            <X class="h-4 w-4" />
+          </button>
+        </div>
+
+        <div class="space-y-5">
+          <div class="space-y-2">
+            <p class="text-xs font-medium uppercase tracking-wider text-white/45">{{ t("profile.language") }}</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                v-for="lang in languageOptions"
+                :key="lang.value"
+                class="rounded-lg border px-3 py-2 text-sm transition-colors"
+                :class="themeStore.language === lang.value ? 'border-neon bg-neon/15 text-neon' : 'border-white/10 text-white/80 hover:border-white/25'"
+                @click="setLanguage(lang.value)"
+              >
+                {{ lang.label }}
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <p class="text-xs font-medium uppercase tracking-wider text-white/45">{{ t("profile.theme") }}</p>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                v-for="themeOption in themeOptions"
+                :key="themeOption.value"
+                class="inline-flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors"
+                :class="themeStore.theme === themeOption.value ? 'border-neon bg-neon/15 text-neon' : 'border-white/10 text-white/80 hover:border-white/25'"
+                @click="setTheme(themeOption.value)"
+              >
+                <span class="h-2 w-2 rounded-full" :class="themeOption.bgClass" />
+                {{ themeOption.label }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </Transition>
 
     <div class="flex flex-1 overflow-hidden relative">
       <aside

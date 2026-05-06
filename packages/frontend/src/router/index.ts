@@ -54,6 +54,12 @@ const router = createRouter({
       meta: { requiresAuth: true }
     },
     {
+      path: '/image-annotator',
+      name: 'image-annotator',
+      component: () => import('@/views/image-annotator/ImageAnnotatorView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('@/views/NotFoundView.vue')

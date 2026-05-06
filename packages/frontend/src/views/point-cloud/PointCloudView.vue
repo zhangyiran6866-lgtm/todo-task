@@ -418,7 +418,7 @@ function disposeScene() {
         @click="handleBackToTasks"
       >
         <ArrowLeft class="h-4 w-4" />
-        {{ t("pointCloud.backToTasks") }}
+        <span class="hidden sm:inline">{{ t("pointCloud.backToTasks") }}</span>
       </button>
 
       <header class="mb-6 flex items-center justify-center">
