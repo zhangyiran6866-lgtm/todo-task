@@ -19,7 +19,13 @@
 
 ## ✨ Overview
 
-TodoTask is a **full-stack personal task management system** built with an immersive Tech-Noir UI. It features task CRUD operations, JWT authentication, bilingual (Chinese/English) support, and multiple neon color themes.
+TodoTask is a **full-stack personal task management system** built with an immersive Tech-Noir UI. It features task CRUD operations, JWT authentication, bilingual (Chinese/English) support, multiple neon themes, and includes a log center, a 3D point-cloud board, and an image annotator.
+
+## 🆕 Recent Additions
+
+- Log Center: filter logs by channel/level/module/time range and inspect details
+- 3D Point Cloud Board: load models, switch shader modes, and interactively explore
+- Image Annotator: upload images, draw annotations, undo changes, and export results
 
 ## 🧭 Entry Rules
 

@@ -15,9 +15,9 @@
 | 架构模式 | Monorepo（pnpm workspaces） |
 | 包管理器 | **pnpm**（禁止 npm / yarn） |
 | Node 版本 | `v20.10.0`（通过 nvm 锁定，根目录已配置 `.nvmrc`） |
-| 核心功能 | 用户注册/登录（JWT）、任务 CRUD、多语言、主题色 |
+| 核心功能 | 用户注册/登录（JWT）、任务 CRUD、多语言、主题色、日志中心、3D 点云看板、图片标注工具 |
 | 当前阶段 | Phase 5（测试与上线）进行中；Phase 0-4 已完成 |
-| 工具脚本 | MongoDB **数据自动化备份与恢复**脚本待实现（Phase 5） |
+| 工具脚本 | MongoDB **数据自动化备份与恢复**脚本已实现（Phase 5） |
 
 > ⚠️ **大纲约束**：所有设计与开发必须以 [`docs/baseline.md`](./docs/baseline.md) 为最高权威，不得擅自偏离。
 
@@ -32,9 +32,9 @@ todotask/
 ├── package.json                 ← Monorepo 根配置（pnpm workspaces）
 ├── pnpm-workspace.yaml          ← workspace 声明
 ├── auth/                        ← 本地敏感信息目录【已 gitignore，禁止提交】
-├── scripts/                     ← Node.js 工具脚本【Phase 5 待创建】
-│   ├── backup.js                ← MongoDB 数据自动化备份【待创建】
-│   └── restore.js               ← MongoDB 数据恢复【待创建】
+├── scripts/                     ← Node.js 工具脚本（Phase 5 已创建）
+│   ├── backup.js                ← MongoDB 数据自动化备份
+│   └── restore.js               ← MongoDB 数据恢复
 ├── docker-compose.yml           ← 本地开发容器编排
 ├── .gitignore
 │
@@ -77,7 +77,7 @@ todotask/
 ```
 
 > ⚠️ **当前阶段**：Phase 5（测试与上线）进行中，Phase 0-4 已完成。
-> 详细进度见 [`docs/dev-phases.md`](./docs/dev-phases.md)。当前未完成重点包括自动化测试、MongoDB 备份/恢复脚本、生产部署配置与 README 持续维护。
+> 详细进度见 [`docs/dev-phases.md`](./docs/dev-phases.md)。当前未完成重点包括自动化测试、生产部署配置与 `.env` 管理。
 
 ---
 

@@ -13,8 +13,10 @@
 | `/login` | `LoginView` | 用户登录 | ❌ |
 | `/register` | `RegisterView` | 用户注册 | ❌ |
 | `/tasks` | `TasksView` | 任务列表主界面 | ✅ |
-| `/tasks/:id` | `TaskDetailView` | 任务详情/编辑 | ✅ |
 | `/profile` | `ProfileView` | 个人信息设置 | ✅ |
+| `/logs` | `LogsView` | 日志中心（筛选、分页、详情） | ✅ |
+| `/point-cloud` | `PointCloudView` | 3D 点云看板（WebGL） | ✅ |
+| `/image-annotator` | `ImageAnnotatorView` | 图片标注工具（上传/绘制/导出） | ✅ |
 | `*` | `NotFoundView` | 404 页面 | ❌ |
 
 ---
@@ -66,20 +68,39 @@
 
 ---
 
-### 2.4 任务详情页（TaskDetailView）
-
-- 展示全部字段，支持行内编辑（点击字段即可编辑）
-- 底部：删除按钮（需二次确认弹窗）
-- 修改后需调用 `PATCH /tasks/:id` 接口
-
----
-
-### 2.5 个人信息页（ProfileView）
+### 2.4 个人信息页（ProfileView）
 
 - 展示邮箱（只读）、昵称（可编辑）
 - 语言切换下拉：中文 / English
 - 主题色选择器：4 种霓虹色块点选
 - 修改密码区域：旧密码 + 新密码 + 确认新密码
+
+---
+
+### 2.5 日志中心（LogsView）
+
+- 提供通道（app/error/audit）、级别、模块、时间范围等筛选
+- 支持分页查询与快速刷新
+- 支持查看单条日志详情（请求信息、耗时、原始字段）
+- 前端对接：`GET /logs`、`GET /logs/:id`
+
+---
+
+### 2.6 3D 点云看板（PointCloudView）
+
+- 使用 Three.js + PLYLoader 渲染点云模型
+- 支持模型切换、Shader 模式切换、点大小调整、自动旋转
+- WebGL 不可用时展示降级提示
+- 提供返回任务列表入口
+
+---
+
+### 2.7 图片标注工具（ImageAnnotatorView）
+
+- 支持上传图片并在画布上添加图形标注
+- 支持选择/拖拽、样式调整（填充、描边、透明度、虚线等）
+- 支持撤销与导出标注结果
+- 提供返回任务列表入口
 
 ---
 
