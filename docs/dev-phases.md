@@ -116,9 +116,9 @@
 - [x] 支持配置备份保留天数，自动清理过期备份
 
 ### 部署
-- [ ] 生产环境 docker-compose 配置
-- [ ] 环境变量 `.env` 管理
-- [ ] README 更新
+- [x] 生产环境 docker-compose 配置
+- [x] 环境变量 `.env` 管理
+- [x] README 更新
 
 ### 日志与可观测性
 - [x] 后端统一结构化日志规范（JSON，含 `request_id`、`user_id`、`module`、`latency_ms`）

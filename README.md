@@ -121,6 +121,45 @@ pnpm dev:frontend
 | `pnpm backup` | 备份 MongoDB 数据（含自动清理） |
 | `pnpm restore` | 交互式恢复 MongoDB 数据 |
 
+## ☁️ 自动化部署（GitHub Actions + GHCR）
+
+### 新增部署文件
+
+- `docker-compose.prod.yml`：生产环境编排（frontend/backend/mongo）
+- `.env.example`：生产环境变量模板
+- `.github/workflows/deploy.yml`：构建、推送、SSH 部署工作流
+
+### GitHub 侧准备
+
+1. 仓库 `Settings -> Actions -> General` 开启 `Read and write permissions`
+2. 配置仓库 Secrets：
+   - `SERVER_HOST`
+   - `SERVER_USER`
+   - `SSH_PRIVATE_KEY`
+   - `GHCR_TOKEN`（可选，镜像 Public 时可不使用）
+3. 首次构建完成后，将 GHCR 包 `todotask-frontend`、`todotask-backend` 设为 Public（推荐）
+
+### 服务器侧准备
+
+1. 安装 Docker 和 Docker Compose
+2. 创建目录 `/opt/todotask`
+3. 上传 `docker-compose.prod.yml` 与 `.env`（可由 `.env.example` 拷贝）
+4. 确保防火墙/安全组开放 `80` 与 `22`
+
+### 触发部署
+
+推送到 `main` 分支会自动触发：
+
+```bash
+git push origin main
+```
+
+工作流会完成：
+
+1. 构建 frontend/backend 镜像
+2. 推送到 GHCR
+3. 通过 SSH 在服务器执行 `docker compose pull && docker compose up -d`
+
 ## 🎨 UI 主题
 
 支持 4 种霓虹主题色，在个人设置页切换：

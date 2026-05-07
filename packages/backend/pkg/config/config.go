@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -49,7 +50,9 @@ type LogConfig struct {
 // Load 从指定路径加载配置文件
 func Load(path string) (*Config, error) {
 	viper.SetConfigFile(path)
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+	bindEnvs()
 
 	if err := viper.ReadInConfig(); err != nil {
 		return nil, fmt.Errorf("config.Load: read config failed: %w", err)
@@ -61,4 +64,11 @@ func Load(path string) (*Config, error) {
 	}
 
 	return &cfg, nil
+}
+
+func bindEnvs() {
+	_ = viper.BindEnv("app.env", "APP_ENV")
+	_ = viper.BindEnv("mongodb.uri", "MONGODB_URI")
+	_ = viper.BindEnv("jwt.access_secret", "JWT_ACCESS_SECRET")
+	_ = viper.BindEnv("jwt.refresh_secret", "JWT_REFRESH_SECRET")
 }

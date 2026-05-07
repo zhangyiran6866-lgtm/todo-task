@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+  frontend:
+    image: ghcr.io/${IMAGE_OWNER}/todotask-frontend:latest
+    container_name: todotask_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - '80:80'
+    networks:
+      - todotask_net
+
+  backend:
+    image: ghcr.io/${IMAGE_OWNER}/todotask-backend:latest
+    container_name: todotask_backend
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      APP_ENV: ${APP_ENV:-production}
+      MONGODB_URI: ${MONGODB_URI}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+    expose:
+      - '8080'
+    networks:
+      - todotask_net
+    volumes:
+      - ./packages/backend/configs:/app/configs:ro
+
+  mongo:
+    image: mongo:7.0
+    container_name: todotask_mongo
+    restart: unless-stopped
+    expose:
+      - '27017'
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - todotask_net
+
+networks:
+  todotask_net:
+    driver: bridge
+
+volumes:
+  mongo_data:
