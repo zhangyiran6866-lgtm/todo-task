@@ -169,6 +169,8 @@ export default {
     keywordPlaceholder: "Search in message",
     startAt: "Start Time",
     endAt: "End Time",
+    showFilters: "Show Filters",
+    hideFilters: "Hide Filters",
     search: "Search Logs",
     empty: "No logs found",
     totalCount: "Total {total}",

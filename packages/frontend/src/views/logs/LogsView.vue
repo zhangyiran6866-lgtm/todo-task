@@ -30,6 +30,9 @@ const channelMenuRef = ref<HTMLElement | null>(null);
 const levelMenuRef = ref<HTMLElement | null>(null);
 const isChannelMenuOpen = ref(false);
 const isLevelMenuOpen = ref(false);
+const isMobileView = ref(false);
+const isFilterPanelOpen = ref(true);
+const hasViewportInitialized = ref(false);
 
 const logs = ref<LogItem[]>([]);
 const currentPage = ref(1);
@@ -86,11 +89,14 @@ const activeLevelLabel = computed(() => {
 void fetchLogs(1);
 
 onMounted(() => {
+  syncViewportState();
   document.addEventListener("click", handleClickOutside);
+  window.addEventListener("resize", syncViewportState);
 });
 
 onUnmounted(() => {
   document.removeEventListener("click", handleClickOutside);
+  window.removeEventListener("resize", syncViewportState);
   unlockBodyScroll();
 });
 
@@ -248,6 +254,29 @@ function toggleLevelMenu() {
   }
 }
 
+function syncViewportState() {
+  const isMobile = window.innerWidth < 768;
+  isMobileView.value = isMobile;
+
+  if (!hasViewportInitialized.value) {
+    isFilterPanelOpen.value = !isMobile;
+    hasViewportInitialized.value = true;
+    return;
+  }
+
+  if (!isMobile) {
+    isFilterPanelOpen.value = true;
+  }
+}
+
+function toggleFilterPanel() {
+  isFilterPanelOpen.value = !isFilterPanelOpen.value;
+  if (!isFilterPanelOpen.value) {
+    isChannelMenuOpen.value = false;
+    isLevelMenuOpen.value = false;
+  }
+}
+
 function selectChannel(value: string) {
   channelFilter.value = value;
   isChannelMenuOpen.value = false;
@@ -311,8 +340,35 @@ function handleClickOutside(event: MouseEvent) {
     </header>
 
     <section class="mx-auto flex w-full max-w-6xl flex-1 flex-col overflow-hidden px-4 py-6 md:px-6 md:py-8">
-      <section class="rounded-2xl border border-[rgba(0,243,255,0.18)] bg-[rgba(5,10,15,0.45)] p-4 backdrop-blur-xl md:p-5">
-        <div class="flex flex-col gap-3 md:flex-row md:items-end md:gap-2">
+      <section
+        class="rounded-2xl border border-[rgba(0,243,255,0.18)] bg-[rgba(5,10,15,0.45)] backdrop-blur-xl transition-all duration-200"
+        :class="isMobileView && !isFilterPanelOpen ? 'p-2.5' : 'p-4 md:p-5'"
+      >
+        <div
+          class="mb-3 flex items-center justify-between md:mb-0 md:hidden"
+          :class="isFilterPanelOpen ? '' : 'mb-0'"
+        >
+          <p class="text-xs uppercase tracking-[0.18em] text-white/60">
+            {{ t("logs.filters") }}
+          </p>
+          <button
+            class="inline-flex items-center gap-1 rounded-md border border-white/15 px-2 text-xs text-white/80 transition-colors hover:border-neon/60 hover:text-neon"
+            :class="isFilterPanelOpen ? 'py-1.5' : 'py-1'"
+            type="button"
+            @click="toggleFilterPanel"
+          >
+            <span>{{ isFilterPanelOpen ? t("logs.hideFilters") : t("logs.showFilters") }}</span>
+            <ChevronDown
+              class="h-3.5 w-3.5 transition-transform"
+              :class="isFilterPanelOpen ? 'rotate-180 text-neon' : 'text-white/70'"
+            />
+          </button>
+        </div>
+
+        <div
+          v-show="!isMobileView || isFilterPanelOpen"
+          class="flex flex-col gap-3 md:flex-row md:items-end md:gap-2"
+        >
           <label class="space-y-1.5 md:w-[170px]">
             <span class="text-xs text-white/55">{{ t("logs.channel") }}</span>
             <div
@@ -390,6 +446,7 @@ function handleClickOutside(event: MouseEvent) {
               :dark="true"
               :enable-time-picker="true"
               :clearable="true"
+              :teleport="true"
               :input-icon="false"
               :placeholder="t('logs.startAt')"
               auto-apply
@@ -405,6 +462,7 @@ function handleClickOutside(event: MouseEvent) {
               :dark="true"
               :enable-time-picker="true"
               :clearable="true"
+              :teleport="true"
               :input-icon="false"
               :placeholder="t('logs.endAt')"
               auto-apply
@@ -433,7 +491,7 @@ function handleClickOutside(event: MouseEvent) {
 
       </section>
 
-      <section class="mt-6 flex min-h-0 flex-1 flex-col">
+      <section class="mt-4 flex min-h-0 flex-1 flex-col md:mt-6">
         <div class="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
         <div
           v-if="isLoading"

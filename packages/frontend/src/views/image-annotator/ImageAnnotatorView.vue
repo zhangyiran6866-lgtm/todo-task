@@ -65,15 +65,15 @@ let panStartClientY = 0;
 let mutatedDuringPointer = false;
 let uid = 1;
 let historyStack: string[] = [];
-let historyIndex = -1;
+const historyIndex = ref(-1);
 let suppressHistory = false;
-let syncSelectionState = false;
+const syncSelectionState = ref(false);
 let styleCommitTimer: number | null = null;
 const MIN_CANVAS_ZOOM = 1;
 const MAX_CANVAS_ZOOM = 4;
 
 const canExport = computed(() => hasImage.value && Boolean(scope));
-const canUndo = computed(() => historyIndex > 0);
+const canUndo = computed(() => historyIndex.value > 0);
 const toolOptions = computed<Array<{ label: string; value: ToolMode }>>(() => [
   { label: t("annotator.tools.rectangle"), value: "rectangle" },
   { label: t("annotator.tools.ellipse"), value: "ellipse" },
@@ -103,15 +103,21 @@ onBeforeUnmount(() => {
 });
 
 watch([fillEnabled, fillColor, strokeColor, strokeWidth, opacity, isDashed, dashLength, dashGap], () => {
+  if (syncSelectionState.value) {
+    return;
+  }
   applyStylesToSelected();
-  if (!syncSelectionState && selectedItem) {
+  if (selectedItem) {
     scheduleHistoryCommit();
   }
 });
 
 watch(annotationSize, (nextSize) => {
+  if (syncSelectionState.value) {
+    return;
+  }
   applySizeToSelected(nextSize);
-  if (!syncSelectionState && selectedItem) {
+  if (selectedItem) {
     scheduleHistoryCommit();
   }
 });
@@ -289,7 +295,7 @@ function clearAnnotations() {
 
 function resetHistory() {
   historyStack = [];
-  historyIndex = -1;
+  historyIndex.value = -1;
 }
 
 function scheduleHistoryCommit() {
@@ -310,14 +316,14 @@ function pushHistorySnapshot() {
     return;
   }
   const snapshot = serializeAnnotations();
-  if (historyIndex >= 0 && historyStack[historyIndex] === snapshot) {
+  if (historyIndex.value >= 0 && historyStack[historyIndex.value] === snapshot) {
     return;
   }
-  if (historyIndex < historyStack.length - 1) {
-    historyStack = historyStack.slice(0, historyIndex + 1);
+  if (historyIndex.value < historyStack.length - 1) {
+    historyStack = historyStack.slice(0, historyIndex.value + 1);
   }
   historyStack.push(snapshot);
-  historyIndex = historyStack.length - 1;
+  historyIndex.value = historyStack.length - 1;
 }
 
 function serializeAnnotations(): string {
@@ -374,6 +380,7 @@ function restoreAnnotationsFromSnapshot(snapshot: string) {
     item.strokeWidth = entry.style.edgeWidth;
     item.opacity = entry.style.opacity;
     item.dashArray = [...entry.style.dashArray];
+    constrainItemWithinImage(item);
 
     const idNum = Number(String(entry.id).replace("anno-", ""));
     if (Number.isFinite(idNum)) {
@@ -384,12 +391,12 @@ function restoreAnnotationsFromSnapshot(snapshot: string) {
 }
 
 function undoHistory() {
-  if (historyIndex <= 0) {
+  if (historyIndex.value <= 0) {
     return;
   }
-  historyIndex -= 1;
+  historyIndex.value -= 1;
   suppressHistory = true;
-  restoreAnnotationsFromSnapshot(historyStack[historyIndex]);
+  restoreAnnotationsFromSnapshot(historyStack[historyIndex.value]);
   suppressHistory = false;
 }
 
@@ -477,8 +484,12 @@ function handleMouseDown(point: paper.Point, nativeEvent?: MouseEvent) {
   }
 
   errorMessage.value = "";
-  createStartPoint = point;
-  const startRect = new scope.Rectangle(point, point);
+  if (!isPointInsideImage(point)) {
+    return;
+  }
+  const startPoint = clampPointToImage(point);
+  createStartPoint = startPoint;
+  const startRect = new scope.Rectangle(startPoint, startPoint);
   creatingItem = createShapeByBounds(activeTool.value, startRect);
   if (creatingItem) {
     selectItem(creatingItem);
@@ -491,7 +502,7 @@ function handleMouseDrag(point: paper.Point, delta: paper.Point, nativeEvent?: M
   }
 
   if (creatingItem && createStartPoint && activeTool.value !== "select") {
-    const nextRect = new scope.Rectangle(createStartPoint, point);
+    const nextRect = new scope.Rectangle(createStartPoint, clampPointToImage(point));
     replaceCreatingShape(nextRect);
     mutatedDuringPointer = true;
     return;
@@ -507,6 +518,7 @@ function handleMouseDrag(point: paper.Point, delta: paper.Point, nativeEvent?: M
       const ratio = nextDistance / Math.max(lastResizeDistance, 1);
       if (Number.isFinite(ratio) && ratio > 0) {
         resizeItem.scale(ratio, resizeCenter);
+        constrainItemWithinImage(resizeItem);
         lastResizeDistance = nextDistance;
         mutatedDuringPointer = true;
       }
@@ -514,6 +526,7 @@ function handleMouseDrag(point: paper.Point, delta: paper.Point, nativeEvent?: M
     return;
   }
   dragItem.position = dragItem.position.add(delta);
+  constrainItemWithinImage(dragItem);
   mutatedDuringPointer = true;
 }
 
@@ -567,7 +580,7 @@ function handleMouseUp(point: paper.Point) {
   }
 
   if (creatingItem && createStartPoint && activeTool.value !== "select") {
-    const finalRect = new scope.Rectangle(createStartPoint, point);
+    const finalRect = new scope.Rectangle(createStartPoint, clampPointToImage(point));
     const isTiny = Math.abs(finalRect.width) < 6 && Math.abs(finalRect.height) < 6;
     if (isTiny) {
       creatingItem.remove();
@@ -641,6 +654,70 @@ function canPanView(): boolean {
     return false;
   }
   return scope.view.zoom > 1.001;
+}
+
+function getImageBounds(): paper.Rectangle | null {
+  if (!backgroundRaster) {
+    return null;
+  }
+  return backgroundRaster.bounds.clone();
+}
+
+function isPointInsideImage(point: paper.Point): boolean {
+  const imageBounds = getImageBounds();
+  if (!imageBounds) {
+    return false;
+  }
+  return (
+    point.x >= imageBounds.left &&
+    point.x <= imageBounds.right &&
+    point.y >= imageBounds.top &&
+    point.y <= imageBounds.bottom
+  );
+}
+
+function clampPointToImage(point: paper.Point): paper.Point {
+  const imageBounds = getImageBounds();
+  if (!scope || !imageBounds) {
+    return point;
+  }
+  const clampedX = Math.min(imageBounds.right, Math.max(imageBounds.left, point.x));
+  const clampedY = Math.min(imageBounds.bottom, Math.max(imageBounds.top, point.y));
+  return new scope.Point(clampedX, clampedY);
+}
+
+function constrainItemWithinImage(item: paper.Item) {
+  if (!scope) {
+    return;
+  }
+  const imageBounds = getImageBounds();
+  if (!imageBounds) {
+    return;
+  }
+
+  if (item.bounds.width > imageBounds.width || item.bounds.height > imageBounds.height) {
+    item.fitBounds(imageBounds, true);
+  }
+
+  const currentBounds = item.bounds;
+  let deltaX = 0;
+  let deltaY = 0;
+
+  if (currentBounds.left < imageBounds.left) {
+    deltaX = imageBounds.left - currentBounds.left;
+  } else if (currentBounds.right > imageBounds.right) {
+    deltaX = imageBounds.right - currentBounds.right;
+  }
+
+  if (currentBounds.top < imageBounds.top) {
+    deltaY = imageBounds.top - currentBounds.top;
+  } else if (currentBounds.bottom > imageBounds.bottom) {
+    deltaY = imageBounds.bottom - currentBounds.bottom;
+  }
+
+  if (deltaX !== 0 || deltaY !== 0) {
+    item.position = item.position.add(new scope.Point(deltaX, deltaY));
+  }
 }
 
 function panViewFromStart(currentPoint: paper.Point, nativeEvent?: MouseEvent) {
@@ -759,6 +836,7 @@ function createShapeByBounds(shape: ShapeKind, rawBounds: paper.Rectangle): pape
   }
 
   applyStylesToItem(item);
+  constrainItemWithinImage(item);
   return item;
 }
 
@@ -797,7 +875,7 @@ function selectItem(item: paper.Item) {
   const id = typeof selectedItem.data.id === "string" ? selectedItem.data.id : "";
   activeItemId.value = id;
 
-  syncSelectionState = true;
+  syncSelectionState.value = true;
   fillColor.value = toHexColor(selectedItem.fillColor, "#00f3ff");
   fillEnabled.value = selectedItem.fillColor !== null;
   strokeColor.value = toHexColor(selectedItem.strokeColor, "#ffffff");
@@ -808,7 +886,9 @@ function selectItem(item: paper.Item) {
   dashLength.value = dashArray.length >= 1 ? dashArray[0] : 8;
   dashGap.value = dashArray.length >= 2 ? dashArray[1] : 6;
   annotationSize.value = Math.max(selectedItem.bounds.width, selectedItem.bounds.height);
-  syncSelectionState = false;
+  void nextTick(() => {
+    syncSelectionState.value = false;
+  });
 }
 
 function deselectItem() {
@@ -850,6 +930,7 @@ function applySizeToSelected(nextSize: number) {
   }
 
   selectedItem.scale(ratio);
+  constrainItemWithinImage(selectedItem);
 }
 
 function removeSelected() {
@@ -945,8 +1026,8 @@ function backToTasks() {
         {{ errorMessage }}
       </p>
 
-      <section class="grid h-[calc(100vh-220px)] grid-cols-1 gap-3 md:grid-cols-[220px_minmax(0,1fr)_280px] md:p-0">
-      <aside class="rounded-2xl border border-white/10 bg-[#0a121b]/90 p-3">
+      <section class="grid grid-cols-1 gap-3 md:h-[calc(100vh-220px)] md:grid-cols-[220px_minmax(0,1fr)_280px] md:p-0">
+      <aside class="order-2 rounded-2xl border border-white/10 bg-[#0a121b]/90 p-3 md:order-1 md:overflow-y-auto">
         <p class="mb-2 text-sm text-white/60">{{ t("annotator.mode") }}</p>
         <div class="mb-3 grid grid-cols-2 gap-2">
           <button
@@ -984,7 +1065,7 @@ function backToTasks() {
 
       <div
         ref="containerRef"
-        class="relative overflow-hidden rounded-2xl border border-white/10 bg-[#05080d]"
+        class="relative order-1 min-h-[52vh] overflow-hidden rounded-2xl border border-white/10 bg-[#05080d] md:order-2 md:min-h-0"
       >
         <canvas
           ref="canvasRef"
@@ -998,7 +1079,7 @@ function backToTasks() {
         </div>
       </div>
 
-      <aside class="rounded-2xl border border-white/10 bg-[#0a121b]/90 p-3">
+      <aside class="order-3 rounded-2xl border border-white/10 bg-[#0a121b]/90 p-3 md:overflow-y-auto">
         <p class="mb-2 text-sm text-white/60">{{ t("annotator.properties") }}</p>
         <p class="mb-3 text-xs text-white/40">
           {{ t("annotator.currentId") }}: {{ activeItemId || t("annotator.noneSelected") }}

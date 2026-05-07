@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useInfiniteScroll } from "@vueuse/core";
@@ -42,9 +42,13 @@ const viewMode = ref<"card" | "list">(isMobile.value ? "list" : "card");
 const userMenuRef = ref<HTMLElement | null>(null);
 const themeMenuRef = ref<HTMLElement | null>(null);
 const languageMenuRef = ref<HTMLElement | null>(null);
+const mobileStatusMenuRef = ref<HTMLElement | null>(null);
+const mobilePriorityMenuRef = ref<HTMLElement | null>(null);
 const isUserMenuOpen = ref(false);
 const isThemeMenuOpen = ref(false);
 const isLanguageMenuOpen = ref(false);
+const isMobileStatusMenuOpen = ref(false);
+const isMobilePriorityMenuOpen = ref(false);
 const isFeatureDrawerOpen = ref(false);
 const isAppearanceDrawerOpen = ref(false);
 const completingTaskId = ref<string | null>(null);
@@ -88,6 +92,20 @@ const activeLanguageOption = computed(() => {
   return (
     languageOptions.value.find((option) => option.value === themeStore.language) ||
     languageOptions.value[0]
+  );
+});
+
+const activeStatusOption = computed(() => {
+  return (
+    statusOptions.value.find((option) => option.value === taskStore.filterStatus) ||
+    statusOptions.value[0]
+  );
+});
+
+const activePriorityOption = computed(() => {
+  return (
+    priorityOptions.value.find((option) => option.value === taskStore.filterPriority) ||
+    priorityOptions.value[0]
   );
 });
 
@@ -160,6 +178,42 @@ function setFilter(status: string, priority: string) {
   taskStore.applyFilters(status, priority);
 }
 
+function toggleMobileStatusMenu() {
+  isMobileStatusMenuOpen.value = !isMobileStatusMenuOpen.value;
+  if (isMobileStatusMenuOpen.value) {
+    isMobilePriorityMenuOpen.value = false;
+    scrollMobileFilterIntoView(mobileStatusMenuRef);
+  }
+}
+
+function toggleMobilePriorityMenu() {
+  isMobilePriorityMenuOpen.value = !isMobilePriorityMenuOpen.value;
+  if (isMobilePriorityMenuOpen.value) {
+    isMobileStatusMenuOpen.value = false;
+    scrollMobileFilterIntoView(mobilePriorityMenuRef);
+  }
+}
+
+function selectMobileStatus(status: string) {
+  setFilter(status, taskStore.filterPriority);
+  isMobileStatusMenuOpen.value = false;
+}
+
+function selectMobilePriority(priority: string) {
+  setFilter(taskStore.filterStatus, priority);
+  isMobilePriorityMenuOpen.value = false;
+}
+
+function scrollMobileFilterIntoView(targetRef: { value: HTMLElement | null }) {
+  void nextTick(() => {
+    targetRef.value?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "nearest",
+    });
+  });
+}
+
 function handleResize() {
   isMobile.value = window.innerWidth < 768;
   if (isMobile.value) {
@@ -167,6 +221,8 @@ function handleResize() {
   } else {
     isFeatureDrawerOpen.value = false;
     isAppearanceDrawerOpen.value = false;
+    isMobileStatusMenuOpen.value = false;
+    isMobilePriorityMenuOpen.value = false;
   }
 }
 
@@ -238,6 +294,12 @@ function handleClickOutside(event: MouseEvent) {
   }
   if (languageMenuRef.value && !languageMenuRef.value.contains(event.target)) {
     isLanguageMenuOpen.value = false;
+  }
+  if (mobileStatusMenuRef.value && !mobileStatusMenuRef.value.contains(event.target)) {
+    isMobileStatusMenuOpen.value = false;
+  }
+  if (mobilePriorityMenuRef.value && !mobilePriorityMenuRef.value.contains(event.target)) {
+    isMobilePriorityMenuOpen.value = false;
   }
 }
 
@@ -620,50 +682,100 @@ function handleLogout() {
         class="flex-1 p-4 md:p-6 overflow-y-auto w-full relative"
       >
         <div class="max-w-5xl mx-auto pb-24">
-          <div class="md:hidden mb-5 grid grid-cols-2 gap-2">
-            <div class="rounded-xl border border-white/10 bg-white/5 p-2.5 backdrop-blur-md">
+          <div class="md:hidden relative z-30 mb-5 grid grid-cols-2 gap-2">
+            <div
+              ref="mobileStatusMenuRef"
+              class="mobile-filter-panel"
+              :class="isMobileStatusMenuOpen ? 'mobile-filter-panel--active' : ''"
+            >
               <p class="mb-2 text-xs font-medium tracking-wide text-white/55">
                 {{ t("tasks.statusFilter") }}
               </p>
               <div class="relative">
-                <select
-                  class="w-full appearance-none rounded-lg border border-white/10 bg-[#0b1219]/80 px-2.5 py-2 pr-8 text-sm text-white outline-none transition-colors focus:border-neon"
-                  :value="taskStore.filterStatus"
-                  @change="setFilter(($event.target as HTMLSelectElement).value, taskStore.filterPriority)"
+                <button
+                  class="mobile-filter-trigger"
+                  type="button"
+                  @click="toggleMobileStatusMenu"
                 >
-                  <option
+                  <span class="inline-flex items-center gap-2 truncate">
+                    <component
+                      :is="activeStatusOption.icon"
+                      class="h-3.5 w-3.5 shrink-0 text-white/70"
+                    />
+                    <span class="truncate">{{ activeStatusOption.label }}</span>
+                  </span>
+                  <ChevronDown
+                    class="h-4 w-4 shrink-0 text-white/45 transition-transform"
+                    :class="isMobileStatusMenuOpen ? 'rotate-180 text-neon' : ''"
+                  />
+                </button>
+                <div
+                  v-if="isMobileStatusMenuOpen"
+                  class="mobile-filter-menu"
+                >
+                  <button
                     v-for="status in statusOptions"
                     :key="status.value"
-                    :value="status.value"
-                    class="bg-[#0b1219]"
+                    class="mobile-filter-menu-item"
+                    :class="taskStore.filterStatus === status.value ? 'mobile-filter-menu-item-active' : ''"
+                    type="button"
+                    @click="selectMobileStatus(status.value)"
                   >
-                    {{ status.label }}
-                  </option>
-                </select>
-                <ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                    <component
+                      :is="status.icon"
+                      class="h-3.5 w-3.5 shrink-0"
+                    />
+                    <span class="truncate">{{ status.label }}</span>
+                  </button>
+                </div>
               </div>
             </div>
 
-            <div class="rounded-xl border border-white/10 bg-white/5 p-2.5 backdrop-blur-md">
+            <div
+              ref="mobilePriorityMenuRef"
+              class="mobile-filter-panel"
+              :class="isMobilePriorityMenuOpen ? 'mobile-filter-panel--active' : ''"
+            >
               <p class="mb-2 text-xs font-medium tracking-wide text-white/55">
                 {{ t("tasks.priorityFilter") }}
               </p>
               <div class="relative">
-                <select
-                  class="w-full appearance-none rounded-lg border border-white/10 bg-[#0b1219]/80 px-2.5 py-2 pr-8 text-sm text-white outline-none transition-colors focus:border-neon"
-                  :value="taskStore.filterPriority"
-                  @change="setFilter(taskStore.filterStatus, ($event.target as HTMLSelectElement).value)"
+                <button
+                  class="mobile-filter-trigger"
+                  type="button"
+                  @click="toggleMobilePriorityMenu"
                 >
-                  <option
+                  <span class="inline-flex items-center gap-2 truncate">
+                    <span
+                      class="h-2 w-2 shrink-0 rounded-full"
+                      :class="activePriorityOption.color"
+                    />
+                    <span class="truncate">{{ activePriorityOption.label }}</span>
+                  </span>
+                  <ChevronDown
+                    class="h-4 w-4 shrink-0 text-white/45 transition-transform"
+                    :class="isMobilePriorityMenuOpen ? 'rotate-180 text-neon' : ''"
+                  />
+                </button>
+                <div
+                  v-if="isMobilePriorityMenuOpen"
+                  class="mobile-filter-menu"
+                >
+                  <button
                     v-for="p in priorityOptions"
                     :key="p.value"
-                    :value="p.value"
-                    class="bg-[#0b1219]"
+                    class="mobile-filter-menu-item"
+                    :class="taskStore.filterPriority === p.value ? 'mobile-filter-menu-item-active' : ''"
+                    type="button"
+                    @click="selectMobilePriority(p.value)"
                   >
-                    {{ p.label }}
-                  </option>
-                </select>
-                <ChevronDown class="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+                    <span
+                      class="h-2 w-2 shrink-0 rounded-full"
+                      :class="p.color"
+                    />
+                    <span class="truncate">{{ p.label }}</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -754,5 +866,90 @@ function handleLogout() {
 <style scoped>
 .task-sort-move {
   transition: transform 220ms ease;
+}
+
+.mobile-filter-panel {
+  position: relative;
+  z-index: 30;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.03)
+  );
+  padding: 0.625rem;
+  backdrop-filter: blur(10px);
+}
+
+.mobile-filter-panel--active {
+  z-index: 80;
+}
+
+.mobile-filter-trigger {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.03)
+  );
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  padding: 0.5rem 0.65rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.mobile-filter-trigger:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.mobile-filter-trigger:focus-visible {
+  border-color: rgba(0, 243, 255, 0.72);
+  box-shadow: 0 0 0 1px rgba(0, 243, 255, 0.2);
+}
+
+.mobile-filter-menu {
+  position: absolute;
+  z-index: 90;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  width: 100%;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(0, 243, 255, 0.22);
+  background: rgba(7, 16, 24, 0.96);
+  padding: 0.25rem;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(10px);
+}
+
+.mobile-filter-menu-item {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.55rem;
+  text-align: left;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.76);
+  transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.mobile-filter-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.mobile-filter-menu-item-active {
+  background: rgba(0, 243, 255, 0.14);
+  color: var(--neon);
 }
 </style>

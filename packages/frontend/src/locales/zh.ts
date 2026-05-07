@@ -169,6 +169,8 @@ export default {
     keywordPlaceholder: "输入消息关键词",
     startAt: "开始时间",
     endAt: "结束时间",
+    showFilters: "展开筛选",
+    hideFilters: "收起筛选",
     search: "查询日志",
     empty: "暂无匹配日志",
     totalCount: "共 {total} 条",
