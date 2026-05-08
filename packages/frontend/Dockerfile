@@ -2,17 +2,18 @@
 FROM node:20.10.0-alpine AS builder
 WORKDIR /workspace
 
-RUN npm install -g pnpm
+ENV CI=true
+RUN corepack enable
 
 # 先复制依赖描述文件以利用构建缓存
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/frontend/package.json ./packages/frontend/package.json
 
-RUN pnpm --filter frontend... install --frozen-lockfile
+RUN pnpm install --filter ./packages/frontend... --frozen-lockfile --config.confirmModulesPurge=false
 
 # 复制前端源码并构建
 COPY packages/frontend ./packages/frontend
-RUN pnpm --filter frontend build
+RUN pnpm --filter ./packages/frontend build
 
 FROM nginx:alpine
 COPY --from=builder /workspace/packages/frontend/dist /usr/share/nginx/html
