@@ -3,8 +3,7 @@ FROM node:20.10.0-alpine AS builder
 WORKDIR /workspace
 
 ENV CI=true
-RUN corepack enable
-RUN pnpm config set registry https://registry.npmjs.org/
+RUN npm install -g pnpm@10.33.0
 
 # 先复制依赖描述文件以利用构建缓存
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
