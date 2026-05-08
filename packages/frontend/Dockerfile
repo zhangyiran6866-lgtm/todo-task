@@ -4,12 +4,13 @@ WORKDIR /workspace
 
 ENV CI=true
 RUN corepack enable
+RUN pnpm config set registry https://registry.npmjs.org/
 
 # 先复制依赖描述文件以利用构建缓存
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/frontend/package.json ./packages/frontend/package.json
 
-RUN pnpm install --filter ./packages/frontend... --frozen-lockfile --config.confirmModulesPurge=false
+RUN pnpm install --filter ./packages/frontend... --frozen-lockfile
 
 # 复制前端源码并构建
 COPY packages/frontend ./packages/frontend
