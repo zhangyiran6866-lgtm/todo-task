@@ -268,11 +268,23 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main class="relative min-h-screen overflow-hidden bg-[var(--bg-dark)]" :style="heroGlowVars">
-    <div class="hero-grid absolute inset-0 pointer-events-none"></div>
-    <div ref="glowARef" class="hero-glow hero-glow--a absolute left-0 top-0"></div>
-    <div ref="glowBRef" class="hero-glow hero-glow--b absolute left-0 top-0"></div>
-    <div ref="glowMergeRef" class="hero-glow hero-glow--merge absolute left-0 top-0"></div>
+  <main
+    class="relative min-h-screen overflow-hidden bg-[var(--bg-dark)]"
+    :style="heroGlowVars"
+  >
+    <div class="hero-grid absolute inset-0 pointer-events-none" />
+    <div
+      ref="glowARef"
+      class="hero-glow hero-glow--a absolute left-0 top-0"
+    />
+    <div
+      ref="glowBRef"
+      class="hero-glow hero-glow--b absolute left-0 top-0"
+    />
+    <div
+      ref="glowMergeRef"
+      class="hero-glow hero-glow--merge absolute left-0 top-0"
+    />
 
     <section
       ref="heroRef"

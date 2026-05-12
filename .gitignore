@@ -32,6 +32,7 @@ Thumbs.db
 # Logs
 *.log
 logs/
+CR_REPORT.md
 
 # Docker
 .docker/
