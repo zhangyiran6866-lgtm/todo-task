@@ -488,83 +488,82 @@ function handleClickOutside(event: MouseEvent) {
             </button>
           </div>
         </div>
-
       </section>
 
       <section class="mt-4 flex min-h-0 flex-1 flex-col md:mt-6">
         <div class="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
-        <div
-          v-if="isLoading"
-          class="flex min-h-56 items-center justify-center text-white/65"
-        >
-          <LoaderCircle class="mr-2 h-5 w-5 animate-spin text-neon" />
-          {{ t("common.loading") }}
-        </div>
+          <div
+            v-if="isLoading"
+            class="flex min-h-56 items-center justify-center text-white/65"
+          >
+            <LoaderCircle class="mr-2 h-5 w-5 animate-spin text-neon" />
+            {{ t("common.loading") }}
+          </div>
 
-        <div
-          v-else-if="listErrorMessage"
-          class="flex min-h-40 items-center justify-center rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 text-sm text-rose-200"
-        >
-          {{ listErrorMessage }}
-        </div>
+          <div
+            v-else-if="listErrorMessage"
+            class="flex min-h-40 items-center justify-center rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 text-sm text-rose-200"
+          >
+            {{ listErrorMessage }}
+          </div>
 
-        <div
-          v-else-if="logs.length === 0"
-          class="flex min-h-52 flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/45"
-        >
-          <ShieldAlert class="mb-2 h-10 w-10 text-white/35" />
-          <p>{{ t("logs.empty") }}</p>
-        </div>
+          <div
+            v-else-if="logs.length === 0"
+            class="flex min-h-52 flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/45"
+          >
+            <ShieldAlert class="mb-2 h-10 w-10 text-white/35" />
+            <p>{{ t("logs.empty") }}</p>
+          </div>
 
-        <button
-          v-for="item in logs"
-          :key="item.id"
-          class="w-full rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left transition-all duration-200 hover:-translate-y-[1px] hover:border-neon/55 hover:shadow-[0_0_20px_rgba(0,243,255,0.12)]"
-          type="button"
-          @click="handleOpenDetail(item)"
-        >
-          <div class="flex flex-wrap items-start justify-between gap-2">
-            <div class="flex flex-wrap items-center gap-2">
-              <button
-                class="rounded-full border px-2 py-0.5 text-xs uppercase tracking-wide"
-                :class="getChannelClass(item.channel)"
-                type="button"
-                @click.stop="handleQuickFilter(item.channel, levelFilter, moduleFilter)"
-              >
-                {{ item.channel || "--" }}
-              </button>
-              <button
-                class="rounded-full border px-2 py-0.5 text-xs uppercase tracking-wide"
-                :class="getLevelClass(item.level)"
-                type="button"
-                @click.stop="handleQuickFilter(channelFilter, item.level, moduleFilter)"
-              >
-                {{ item.level || "--" }}
-              </button>
-              <button
-                class="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-xs text-white/70"
-                type="button"
-                @click.stop="handleQuickFilter(channelFilter, levelFilter, item.module)"
-              >
-                {{ item.module || "unknown" }}
-              </button>
+          <button
+            v-for="item in logs"
+            :key="item.id"
+            class="w-full rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left transition-all duration-200 hover:-translate-y-[1px] hover:border-neon/55 hover:shadow-[0_0_20px_rgba(0,243,255,0.12)]"
+            type="button"
+            @click="handleOpenDetail(item)"
+          >
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <button
+                  class="rounded-full border px-2 py-0.5 text-xs uppercase tracking-wide"
+                  :class="getChannelClass(item.channel)"
+                  type="button"
+                  @click.stop="handleQuickFilter(item.channel, levelFilter, moduleFilter)"
+                >
+                  {{ item.channel || "--" }}
+                </button>
+                <button
+                  class="rounded-full border px-2 py-0.5 text-xs uppercase tracking-wide"
+                  :class="getLevelClass(item.level)"
+                  type="button"
+                  @click.stop="handleQuickFilter(channelFilter, item.level, moduleFilter)"
+                >
+                  {{ item.level || "--" }}
+                </button>
+                <button
+                  class="rounded-full border border-white/15 bg-white/5 px-2 py-0.5 text-xs text-white/70"
+                  type="button"
+                  @click.stop="handleQuickFilter(channelFilter, levelFilter, item.module)"
+                >
+                  {{ item.module || "unknown" }}
+                </button>
+              </div>
+              <span class="text-xs text-white/45">
+                {{ formatTimestamp(item.timestamp) }}
+              </span>
             </div>
-            <span class="text-xs text-white/45">
-              {{ formatTimestamp(item.timestamp) }}
-            </span>
-          </div>
 
-          <p class="mt-3 line-clamp-2 text-sm text-white/90">
-            {{ item.message || "--" }}
-          </p>
+            <p class="mt-3 line-clamp-2 text-sm text-white/90">
+              {{ item.message || "--" }}
+            </p>
 
-          <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/55">
-            <span>{{ t("logs.requestId") }}: {{ item.request_id || "--" }}</span>
-            <span>{{ t("logs.path") }}: {{ item.path || item.route || "--" }}</span>
-            <span>{{ t("logs.status") }}: {{ item.status_code ?? "--" }}</span>
-            <span>{{ t("logs.latency") }}: {{ item.latency_ms ?? "--" }}ms</span>
-          </div>
-        </button>
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-white/55">
+              <span>{{ t("logs.requestId") }}: {{ item.request_id || "--" }}</span>
+              <span>{{ t("logs.path") }}: {{ item.path || item.route || "--" }}</span>
+              <span>{{ t("logs.status") }}: {{ item.status_code ?? "--" }}</span>
+              <span>{{ t("logs.latency") }}: {{ item.latency_ms ?? "--" }}ms</span>
+            </div>
+          </button>
         </div>
 
         <div
@@ -641,45 +640,83 @@ function handleClickOutside(event: MouseEvent) {
         >
           <div class="grid grid-cols-2 gap-3 text-sm">
             <div class="rounded-lg border border-white/10 bg-white/5 p-3">
-              <p class="mb-1 text-xs text-white/45">{{ t("logs.channel") }}</p>
-              <p class="text-white/90">{{ selectedLog.channel || "--" }}</p>
+              <p class="mb-1 text-xs text-white/45">
+                {{ t("logs.channel") }}
+              </p>
+              <p class="text-white/90">
+                {{ selectedLog.channel || "--" }}
+              </p>
             </div>
             <div class="rounded-lg border border-white/10 bg-white/5 p-3">
-              <p class="mb-1 text-xs text-white/45">{{ t("logs.level") }}</p>
-              <p class="text-white/90">{{ selectedLog.level || "--" }}</p>
+              <p class="mb-1 text-xs text-white/45">
+                {{ t("logs.level") }}
+              </p>
+              <p class="text-white/90">
+                {{ selectedLog.level || "--" }}
+              </p>
             </div>
             <div class="rounded-lg border border-white/10 bg-white/5 p-3">
-              <p class="mb-1 text-xs text-white/45">{{ t("logs.module") }}</p>
-              <p class="text-white/90">{{ selectedLog.module || "--" }}</p>
+              <p class="mb-1 text-xs text-white/45">
+                {{ t("logs.module") }}
+              </p>
+              <p class="text-white/90">
+                {{ selectedLog.module || "--" }}
+              </p>
             </div>
             <div class="rounded-lg border border-white/10 bg-white/5 p-3">
-              <p class="mb-1 text-xs text-white/45">{{ t("logs.action") }}</p>
-              <p class="text-white/90">{{ selectedLog.action || "--" }}</p>
+              <p class="mb-1 text-xs text-white/45">
+                {{ t("logs.action") }}
+              </p>
+              <p class="text-white/90">
+                {{ selectedLog.action || "--" }}
+              </p>
             </div>
           </div>
 
           <div class="rounded-lg border border-white/10 bg-white/5 p-3 text-sm">
-            <p class="mb-1 text-xs text-white/45">{{ t("logs.timestamp") }}</p>
-            <p class="text-white/90">{{ formatTimestamp(selectedLog.timestamp) }}</p>
+            <p class="mb-1 text-xs text-white/45">
+              {{ t("logs.timestamp") }}
+            </p>
+            <p class="text-white/90">
+              {{ formatTimestamp(selectedLog.timestamp) }}
+            </p>
           </div>
 
           <div class="rounded-lg border border-white/10 bg-white/5 p-3 text-sm">
-            <p class="mb-1 text-xs text-white/45">{{ t("logs.message") }}</p>
-            <p class="break-words text-white/90">{{ selectedLog.message || "--" }}</p>
+            <p class="mb-1 text-xs text-white/45">
+              {{ t("logs.message") }}
+            </p>
+            <p class="break-words text-white/90">
+              {{ selectedLog.message || "--" }}
+            </p>
           </div>
 
           <div class="rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-white/60">
             <p>{{ t("logs.requestId") }}: {{ selectedLog.request_id || "--" }}</p>
-            <p class="mt-1">{{ t("logs.userId") }}: {{ selectedLog.user_id || "--" }}</p>
-            <p class="mt-1">{{ t("logs.ip") }}: {{ selectedLog.client_ip || "--" }}</p>
-            <p class="mt-1">{{ t("logs.method") }}: {{ selectedLog.method || "--" }}</p>
-            <p class="mt-1">{{ t("logs.path") }}: {{ selectedLog.path || selectedLog.route || "--" }}</p>
-            <p class="mt-1">{{ t("logs.status") }}: {{ selectedLog.status_code ?? "--" }}</p>
-            <p class="mt-1">{{ t("logs.latency") }}: {{ selectedLog.latency_ms ?? "--" }}ms</p>
+            <p class="mt-1">
+              {{ t("logs.userId") }}: {{ selectedLog.user_id || "--" }}
+            </p>
+            <p class="mt-1">
+              {{ t("logs.ip") }}: {{ selectedLog.client_ip || "--" }}
+            </p>
+            <p class="mt-1">
+              {{ t("logs.method") }}: {{ selectedLog.method || "--" }}
+            </p>
+            <p class="mt-1">
+              {{ t("logs.path") }}: {{ selectedLog.path || selectedLog.route || "--" }}
+            </p>
+            <p class="mt-1">
+              {{ t("logs.status") }}: {{ selectedLog.status_code ?? "--" }}
+            </p>
+            <p class="mt-1">
+              {{ t("logs.latency") }}: {{ selectedLog.latency_ms ?? "--" }}ms
+            </p>
           </div>
 
           <div class="rounded-lg border border-white/10 bg-[#050a0f] p-3">
-            <p class="mb-2 text-xs text-white/45">{{ t("logs.raw") }}</p>
+            <p class="mb-2 text-xs text-white/45">
+              {{ t("logs.raw") }}
+            </p>
             <pre class="max-h-64 overflow-auto rounded-md border border-white/10 bg-black/45 p-2.5 text-xs text-white/75">{{ JSON.stringify(selectedLog.raw || {}, null, 2) }}</pre>
           </div>
         </div>

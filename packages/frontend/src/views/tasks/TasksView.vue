@@ -527,7 +527,9 @@ function handleLogout() {
         class="fixed left-0 top-0 z-40 h-screen w-72 border-r border-white/10 bg-[#081018]/95 p-4 backdrop-blur-md md:hidden"
       >
         <div class="mb-4 flex items-center justify-between">
-          <p class="text-sm font-medium tracking-wide text-white/80">{{ t("common.appName") }}</p>
+          <p class="text-sm font-medium tracking-wide text-white/80">
+            {{ t("common.appName") }}
+          </p>
           <button
             class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/70 transition-colors hover:border-neon hover:text-neon"
             @click="isFeatureDrawerOpen = false"
@@ -578,7 +580,9 @@ function handleLogout() {
         class="fixed right-0 top-0 z-40 h-screen w-72 border-l border-white/10 bg-[#081018]/95 p-4 backdrop-blur-md md:hidden"
       >
         <div class="mb-4 flex items-center justify-between">
-          <p class="text-sm font-medium tracking-wide text-white/80">{{ t("tasks.appearance") }}</p>
+          <p class="text-sm font-medium tracking-wide text-white/80">
+            {{ t("tasks.appearance") }}
+          </p>
           <button
             class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-white/70 transition-colors hover:border-neon hover:text-neon"
             @click="isAppearanceDrawerOpen = false"
@@ -589,7 +593,9 @@ function handleLogout() {
 
         <div class="space-y-5">
           <div class="space-y-2">
-            <p class="text-xs font-medium uppercase tracking-wider text-white/45">{{ t("profile.language") }}</p>
+            <p class="text-xs font-medium uppercase tracking-wider text-white/45">
+              {{ t("profile.language") }}
+            </p>
             <div class="grid grid-cols-2 gap-2">
               <button
                 v-for="lang in languageOptions"
@@ -604,7 +610,9 @@ function handleLogout() {
           </div>
 
           <div class="space-y-2">
-            <p class="text-xs font-medium uppercase tracking-wider text-white/45">{{ t("profile.theme") }}</p>
+            <p class="text-xs font-medium uppercase tracking-wider text-white/45">
+              {{ t("profile.theme") }}
+            </p>
             <div class="grid grid-cols-2 gap-2">
               <button
                 v-for="themeOption in themeOptions"
@@ -613,7 +621,10 @@ function handleLogout() {
                 :class="themeStore.theme === themeOption.value ? 'border-neon bg-neon/15 text-neon' : 'border-white/10 text-white/80 hover:border-white/25'"
                 @click="setTheme(themeOption.value)"
               >
-                <span class="h-2 w-2 rounded-full" :class="themeOption.bgClass" />
+                <span
+                  class="h-2 w-2 rounded-full"
+                  :class="themeOption.bgClass"
+                />
                 {{ themeOption.label }}
               </button>
             </div>

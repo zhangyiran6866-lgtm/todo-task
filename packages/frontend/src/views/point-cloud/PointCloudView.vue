@@ -433,7 +433,9 @@ function disposeScene() {
             ref="modelMenuRef"
             class="relative flex w-full shrink-0 items-center gap-2 md:w-[260px]"
           >
-            <p class="shrink-0 whitespace-nowrap text-white/70">{{ t("pointCloud.modelLabel") }}:</p>
+            <p class="shrink-0 whitespace-nowrap text-white/70">
+              {{ t("pointCloud.modelLabel") }}:
+            </p>
             <button
               class="flex min-w-0 flex-1 items-center justify-between rounded-full border border-white/10 px-2.5 py-1.5 transition-colors hover:border-white/25"
               @click="toggleModelMenu"
@@ -472,7 +474,9 @@ function disposeScene() {
             ref="shaderMenuRef"
             class="relative flex w-full shrink-0 items-center gap-2 md:w-[230px]"
           >
-            <p class="shrink-0 whitespace-nowrap text-white/70">{{ t("pointCloud.shaderModeLabel") }}:</p>
+            <p class="shrink-0 whitespace-nowrap text-white/70">
+              {{ t("pointCloud.shaderModeLabel") }}:
+            </p>
             <button
               class="flex min-w-0 flex-1 items-center justify-between rounded-full border border-white/10 px-2.5 py-1.5 transition-colors hover:border-white/25"
               @click="toggleShaderMenu"
@@ -505,14 +509,14 @@ function disposeScene() {
               max="5"
               step="0.1"
               class="w-28 accent-cyan-300"
-            />
+            >
           </label>
           <label class="flex w-full shrink-0 items-center gap-2 md:w-[140px]">
             <input
               v-model="autoRotate"
               type="checkbox"
               class="h-4 w-4 rounded border-white/30 bg-[#0b1219]"
-            />
+            >
             <span class="whitespace-nowrap">{{ t("pointCloud.autoRotateLabel") }}</span>
           </label>
         </div>

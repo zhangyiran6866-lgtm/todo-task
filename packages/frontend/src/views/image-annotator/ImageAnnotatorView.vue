@@ -992,7 +992,7 @@ function backToTasks() {
           type="file"
           accept="image/png,image/jpeg,image/webp,image/jpg"
           @change="handleFileChange"
-        />
+        >
         <button
           class="rounded-full border border-white/20 px-3 py-1.5 text-sm text-white/85 transition-colors hover:border-neon hover:text-neon"
           :disabled="isBusy"
@@ -1027,176 +1027,182 @@ function backToTasks() {
       </p>
 
       <section class="grid grid-cols-1 gap-3 md:h-[calc(100vh-220px)] md:grid-cols-[220px_minmax(0,1fr)_280px] md:p-0">
-      <aside class="order-2 rounded-2xl border border-white/10 bg-[#0a121b]/90 p-3 md:order-1 md:overflow-y-auto">
-        <p class="mb-2 text-sm text-white/60">{{ t("annotator.mode") }}</p>
-        <div class="mb-3 grid grid-cols-2 gap-2">
-          <button
-            class="inline-flex items-center justify-center gap-1 rounded-xl border px-2 py-2 text-sm transition-colors"
-            :class="activeTool === 'select' ? 'border-neon bg-neon/20 text-neon' : 'border-white/15 text-white/80 hover:border-white/30'"
-            @click="activeTool = 'select'"
-          >
-            <Hand class="h-4 w-4" />
-            {{ t("annotator.handMode") }}
-          </button>
-          <button
-            class="inline-flex items-center justify-center gap-1 rounded-xl border px-2 py-2 text-sm transition-colors"
-            :class="activeTool !== 'select' ? 'border-neon bg-neon/20 text-neon' : 'border-white/15 text-white/80 hover:border-white/30'"
-            @click="activeTool = 'star'"
-          >
-            <PenTool class="h-4 w-4" />
-            {{ t("annotator.annotateMode") }}
-          </button>
-        </div>
+        <aside class="order-2 rounded-2xl border border-white/10 bg-[#0a121b]/90 p-3 md:order-1 md:overflow-y-auto">
+          <p class="mb-2 text-sm text-white/60">
+            {{ t("annotator.mode") }}
+          </p>
+          <div class="mb-3 grid grid-cols-2 gap-2">
+            <button
+              class="inline-flex items-center justify-center gap-1 rounded-xl border px-2 py-2 text-sm transition-colors"
+              :class="activeTool === 'select' ? 'border-neon bg-neon/20 text-neon' : 'border-white/15 text-white/80 hover:border-white/30'"
+              @click="activeTool = 'select'"
+            >
+              <Hand class="h-4 w-4" />
+              {{ t("annotator.handMode") }}
+            </button>
+            <button
+              class="inline-flex items-center justify-center gap-1 rounded-xl border px-2 py-2 text-sm transition-colors"
+              :class="activeTool !== 'select' ? 'border-neon bg-neon/20 text-neon' : 'border-white/15 text-white/80 hover:border-white/30'"
+              @click="activeTool = 'star'"
+            >
+              <PenTool class="h-4 w-4" />
+              {{ t("annotator.annotateMode") }}
+            </button>
+          </div>
 
-        <p class="mb-2 text-sm text-white/60">{{ t("annotator.drawTools") }}</p>
-        <div class="grid grid-cols-2 gap-2">
-          <button
-            v-for="tool in toolOptions"
-            :key="tool.value"
-            class="rounded-xl border px-2 py-2 text-sm transition-colors"
-            :disabled="activeTool === 'select'"
-            :class="activeTool === tool.value ? 'border-neon bg-neon/20 text-neon' : 'border-white/15 text-white/80 hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-50'"
-            @click="activeTool = tool.value"
-          >
-            {{ tool.label }}
-          </button>
-        </div>
-      </aside>
+          <p class="mb-2 text-sm text-white/60">
+            {{ t("annotator.drawTools") }}
+          </p>
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              v-for="tool in toolOptions"
+              :key="tool.value"
+              class="rounded-xl border px-2 py-2 text-sm transition-colors"
+              :disabled="activeTool === 'select'"
+              :class="activeTool === tool.value ? 'border-neon bg-neon/20 text-neon' : 'border-white/15 text-white/80 hover:border-white/30 disabled:cursor-not-allowed disabled:opacity-50'"
+              @click="activeTool = tool.value"
+            >
+              {{ tool.label }}
+            </button>
+          </div>
+        </aside>
 
-      <div
-        ref="containerRef"
-        class="relative order-1 min-h-[52vh] overflow-hidden rounded-2xl border border-white/10 bg-[#05080d] md:order-2 md:min-h-0"
-      >
-        <canvas
-          ref="canvasRef"
-          class="block h-full w-full"
-        />
         <div
-          v-if="!hasImage"
-          class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-white/45"
+          ref="containerRef"
+          class="relative order-1 min-h-[52vh] overflow-hidden rounded-2xl border border-white/10 bg-[#05080d] md:order-2 md:min-h-0"
         >
-          {{ t("annotator.uploadHint") }}
-        </div>
-      </div>
-
-      <aside class="order-3 rounded-2xl border border-white/10 bg-[#0a121b]/90 p-3 md:overflow-y-auto">
-        <p class="mb-2 text-sm text-white/60">{{ t("annotator.properties") }}</p>
-        <p class="mb-3 text-xs text-white/40">
-          {{ t("annotator.currentId") }}: {{ activeItemId || t("annotator.noneSelected") }}
-        </p>
-
-        <div class="space-y-3">
-          <label class="flex items-center gap-2 text-sm text-white/85">
-            <input
-              v-model="fillEnabled"
-              type="checkbox"
-            />
-            {{ t("annotator.fillEnabled") }}
-          </label>
-
-          <label class="block text-sm text-white/85">
-            {{ t("annotator.fillColor") }}
-            <input
-              v-model="fillColor"
-              class="mt-1 h-9 w-full rounded-lg border border-white/15 bg-transparent px-2"
-              type="color"
-              :disabled="!fillEnabled"
-            />
-          </label>
-
-          <label class="block text-sm text-white/85">
-            {{ t("annotator.edgeColor") }}
-            <input
-              v-model="strokeColor"
-              class="mt-1 h-9 w-full rounded-lg border border-white/15 bg-transparent px-2"
-              type="color"
-              :disabled="!activeItemId"
-            />
-          </label>
-
-          <label class="block text-sm text-white/85">
-            {{ t("annotator.edgeWidth") }}: {{ strokeWidth }}
-            <input
-              v-model.number="strokeWidth"
-              class="mt-1 w-full"
-              type="range"
-              min="1"
-              max="14"
-              step="1"
-              :disabled="!activeItemId"
-            />
-          </label>
-
-          <label class="block text-sm text-white/85">
-            {{ t("annotator.opacity") }}: {{ opacity.toFixed(2) }}
-            <input
-              v-model.number="opacity"
-              class="mt-1 w-full"
-              type="range"
-              min="0.1"
-              max="1"
-              step="0.05"
-              :disabled="!activeItemId"
-            />
-          </label>
-
-          <label class="block text-sm text-white/85">
-            {{ t("annotator.size") }}: {{ Math.round(annotationSize) }}
-            <input
-              v-model.number="annotationSize"
-              class="mt-1 w-full"
-              type="range"
-              min="24"
-              max="260"
-              step="2"
-              :disabled="!activeItemId"
-            />
-          </label>
-
-          <label class="flex items-center gap-2 text-sm text-white/85">
-            <input
-              v-model="isDashed"
-              type="checkbox"
-              :disabled="!activeItemId"
-            />
-            {{ t("annotator.dashedEdge") }}
-          </label>
-
-          <label class="block text-sm text-white/85">
-            {{ t("annotator.dashLength") }}: {{ dashLength }}
-            <input
-              v-model.number="dashLength"
-              class="mt-1 w-full"
-              type="range"
-              min="2"
-              max="24"
-              step="1"
-              :disabled="!activeItemId || !isDashed"
-            />
-          </label>
-
-          <label class="block text-sm text-white/85">
-            {{ t("annotator.dashGap") }}: {{ dashGap }}
-            <input
-              v-model.number="dashGap"
-              class="mt-1 w-full"
-              type="range"
-              min="2"
-              max="24"
-              step="1"
-              :disabled="!activeItemId || !isDashed"
-            />
-          </label>
-
-          <button
-            class="mt-2 w-full rounded-xl border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-            :disabled="!activeItemId"
-            @click="removeSelected"
+          <canvas
+            ref="canvasRef"
+            class="block h-full w-full"
+          />
+          <div
+            v-if="!hasImage"
+            class="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-white/45"
           >
-            {{ t("annotator.removeSelected") }}
-          </button>
+            {{ t("annotator.uploadHint") }}
+          </div>
         </div>
-      </aside>
+
+        <aside class="order-3 rounded-2xl border border-white/10 bg-[#0a121b]/90 p-3 md:overflow-y-auto">
+          <p class="mb-2 text-sm text-white/60">
+            {{ t("annotator.properties") }}
+          </p>
+          <p class="mb-3 text-xs text-white/40">
+            {{ t("annotator.currentId") }}: {{ activeItemId || t("annotator.noneSelected") }}
+          </p>
+
+          <div class="space-y-3">
+            <label class="flex items-center gap-2 text-sm text-white/85">
+              <input
+                v-model="fillEnabled"
+                type="checkbox"
+              >
+              {{ t("annotator.fillEnabled") }}
+            </label>
+
+            <label class="block text-sm text-white/85">
+              {{ t("annotator.fillColor") }}
+              <input
+                v-model="fillColor"
+                class="mt-1 h-9 w-full rounded-lg border border-white/15 bg-transparent px-2"
+                type="color"
+                :disabled="!fillEnabled"
+              >
+            </label>
+
+            <label class="block text-sm text-white/85">
+              {{ t("annotator.edgeColor") }}
+              <input
+                v-model="strokeColor"
+                class="mt-1 h-9 w-full rounded-lg border border-white/15 bg-transparent px-2"
+                type="color"
+                :disabled="!activeItemId"
+              >
+            </label>
+
+            <label class="block text-sm text-white/85">
+              {{ t("annotator.edgeWidth") }}: {{ strokeWidth }}
+              <input
+                v-model.number="strokeWidth"
+                class="mt-1 w-full"
+                type="range"
+                min="1"
+                max="14"
+                step="1"
+                :disabled="!activeItemId"
+              >
+            </label>
+
+            <label class="block text-sm text-white/85">
+              {{ t("annotator.opacity") }}: {{ opacity.toFixed(2) }}
+              <input
+                v-model.number="opacity"
+                class="mt-1 w-full"
+                type="range"
+                min="0.1"
+                max="1"
+                step="0.05"
+                :disabled="!activeItemId"
+              >
+            </label>
+
+            <label class="block text-sm text-white/85">
+              {{ t("annotator.size") }}: {{ Math.round(annotationSize) }}
+              <input
+                v-model.number="annotationSize"
+                class="mt-1 w-full"
+                type="range"
+                min="24"
+                max="260"
+                step="2"
+                :disabled="!activeItemId"
+              >
+            </label>
+
+            <label class="flex items-center gap-2 text-sm text-white/85">
+              <input
+                v-model="isDashed"
+                type="checkbox"
+                :disabled="!activeItemId"
+              >
+              {{ t("annotator.dashedEdge") }}
+            </label>
+
+            <label class="block text-sm text-white/85">
+              {{ t("annotator.dashLength") }}: {{ dashLength }}
+              <input
+                v-model.number="dashLength"
+                class="mt-1 w-full"
+                type="range"
+                min="2"
+                max="24"
+                step="1"
+                :disabled="!activeItemId || !isDashed"
+              >
+            </label>
+
+            <label class="block text-sm text-white/85">
+              {{ t("annotator.dashGap") }}: {{ dashGap }}
+              <input
+                v-model.number="dashGap"
+                class="mt-1 w-full"
+                type="range"
+                min="2"
+                max="24"
+                step="1"
+                :disabled="!activeItemId || !isDashed"
+              >
+            </label>
+
+            <button
+              class="mt-2 w-full rounded-xl border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200 transition-colors hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="!activeItemId"
+              @click="removeSelected"
+            >
+              {{ t("annotator.removeSelected") }}
+            </button>
+          </div>
+        </aside>
       </section>
     </section>
   </main>
