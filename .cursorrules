@@ -1,0 +1,41 @@
+# TodoTask IDE Rules (Compatibility)
+
+This file mirrors the project coding rules for editors that still read `.cursorrules`.
+
+## Global
+
+- Follow `docs/baseline.md` as highest authority.
+- Check `docs/dev-phases.md` before new implementation.
+- Package manager: pnpm only.
+
+## Frontend (`packages/frontend`)
+
+- Vue 3 with `<script setup lang="ts">` only; no Options API.
+- TypeScript business code only; no `.js` business files.
+- No `any`.
+- Component naming: PascalCase file names and PascalCase usage in template.
+- Composables prefix `use`; handler functions prefix `handle`.
+- Do not use `v-if` and `v-for` on same element.
+- Never use array index as `v-for` key.
+- Route lazy loading with dynamic import.
+- Prefer Tailwind; use Less for complex cases.
+- Private component style should be `scoped`; use `:deep()` when needed.
+
+## Backend (`packages/backend`)
+
+- Strict dependency flow: Handler -> Service -> Repository.
+- Handler only handles request/response mapping.
+- Service handles business logic and business errors.
+- Repository handles MongoDB CRUD only.
+- Never ignore `error`.
+- Use Zap for logs; no `fmt.Println` for logging.
+- Use unified response style from `pkg/response`.
+- DB operations must carry `context.Context` and timeout control.
+- No physical delete for business entities.
+- No unmanaged fire-and-forget goroutines.
+
+## Git
+
+- Commit message format: `<type>(<scope>): <中文说明>` (<= 25 chars in summary).
+- Do not push without explicit user authorization.
+

@@ -1,0 +1,47 @@
+name: Code Review Gate
+
+on:
+  pull_request:
+    branches:
+      - main
+  merge_group:
+
+jobs:
+  cr-check:
+    name: CR Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20.10.0"
+          registry-url: https://registry.npmjs.org
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: packages/backend/go.mod
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run CR pipeline
+        run: pnpm run review:precommit
+
+      - name: Upload CR report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cr-report
+          path: CR_REPORT.md
+          if-no-files-found: warn

@@ -215,6 +215,7 @@ todotask/
 | 数据库设计文档 | [`docs/database-design.md`](./docs/database-design.md) | 编写 model/repository 代码时，以此为准定义字段和索引 |
 | 前端 PRD 文档 | [`docs/frontend-prd.md`](./docs/frontend-prd.md) | 开发所有前端页面和组件前，先确认页面清单和功能需求 |
 | 自动化测试文档 | [`docs/testing.md`](./docs/testing.md) | Phase 5 创建测试脚本时遵循，测试用例以文档清单为准 |
+| 代码审查规范 | [`docs/code-review.md`](./docs/code-review.md) | 每次提交前执行审查清单与质量校验命令 |
 
 ### AI 开发工作流（每次任务必须遵循）
 

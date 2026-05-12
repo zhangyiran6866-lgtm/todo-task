@@ -1,0 +1,51 @@
+---
+description: TodoTask fullstack coding rules (frontend + backend)
+globs:
+  - "packages/frontend/**/*"
+  - "packages/backend/**/*"
+alwaysApply: true
+---
+
+# TodoTask IDE Rules
+
+## Source Of Truth
+
+- Must follow `/Users/zyr/code/todotask/docs/baseline.md` as top authority.
+- Check `/Users/zyr/code/todotask/docs/dev-phases.md` before starting implementation.
+- Use `pnpm` only. Do not use `npm` or `yarn`.
+
+## Frontend Rules (Vue3 + TS)
+
+- Scope: all files under `packages/frontend/`.
+- Must use Vue 3 `<script setup lang="ts">`; Options API is forbidden.
+- Business code must be TypeScript; no `.js` business files.
+- No `any`; use precise types, `unknown`, and narrowing when needed.
+- Component file names must be PascalCase; use PascalCase in templates too.
+- Composables must use `use` prefix; event handlers must use `handle` prefix.
+- Do not place `v-if` and `v-for` on the same element.
+- Do not use array index as `v-for` key; use stable business id.
+- Router views should use lazy loading: `() => import('@/views/...')`.
+- Prefer Tailwind CSS; use Less only for complex styling.
+- Scoped component styles must use `scoped`; use `:deep()` for child penetration.
+- Import order: Vue core -> third-party -> stores -> composables -> components -> types/utils/api.
+
+## Backend Rules (Go + Gin + MongoDB)
+
+- Scope: all files under `packages/backend/`.
+- Keep strict layer direction: Handler -> Service -> Repository only.
+- Handler: parse input, call service, map errors to HTTP status.
+- Service: business orchestration and business errors.
+- Repository: MongoDB CRUD only, no business logic.
+- Do not ignore errors (no `result, _ := ...`).
+- Do not log with `fmt.Println`; use Zap structured logger.
+- Use unified response package (`pkg/response`); avoid direct ad-hoc JSON response style.
+- All DB operations must use `context.Context` with timeout control.
+- No physical delete for business data; use soft delete.
+- For model structs, keep both `bson` and `json` tags.
+- No fire-and-forget goroutines that cannot be stopped.
+
+## Git And Delivery
+
+- Commit format: `<type>(<scope>): <中文说明>` and keep summary <= 25 chars.
+- Do not `git push` unless explicitly requested.
+

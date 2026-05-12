@@ -181,6 +181,7 @@ git push origin main
 | [数据库设计](docs/database-design.md) | MongoDB 集合设计 |
 | [前端 PRD](docs/frontend-prd.md) | 页面与功能规范 |
 | [测试文档](docs/testing.md) | 自动化测试规范 |
+| [代码审查规范](docs/code-review.md) | 提交前审查维度与校验流程 |
 | [Apifox Backend MCP](mcp/apifox-backend/README.md) | 后端接口文档同步到 Apifox |
 | [Apifox Frontend MCP](mcp/apifox-frontend/README.md) | Apifox 接口契约同步到前端 API TS 层 |
 
