@@ -20,7 +20,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Detect changed paths
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            frontend:
+              - 'packages/frontend/**'
+            backend:
+              - 'packages/backend/**'
+            deploy:
+              - 'docker-compose.prod.yml'
+              - '.github/workflows/deploy.yml'
+
       - name: Login to GHCR
+        if: steps.changes.outputs.frontend == 'true' || steps.changes.outputs.backend == 'true' || steps.changes.outputs.deploy == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -28,6 +42,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push frontend
+        if: steps.changes.outputs.frontend == 'true' || steps.changes.outputs.deploy == 'true'
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -39,6 +54,7 @@ jobs:
             ${{ env.IMAGE_PREFIX }}/todotask-frontend:${{ github.sha }}
 
       - name: Build and push backend
+        if: steps.changes.outputs.backend == 'true' || steps.changes.outputs.deploy == 'true'
         uses: docker/build-push-action@v5
         with:
           context: ./packages/backend
@@ -50,36 +66,95 @@ jobs:
             ${{ env.IMAGE_PREFIX }}/todotask-backend:${{ github.sha }}
 
       - name: Deploy to server
+        if: steps.changes.outputs.frontend == 'true' || steps.changes.outputs.backend == 'true' || steps.changes.outputs.deploy == 'true'
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          FRONTEND_CHANGED: ${{ steps.changes.outputs.frontend }}
+          BACKEND_CHANGED: ${{ steps.changes.outputs.backend }}
+          DEPLOY_CHANGED: ${{ steps.changes.outputs.deploy }}
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASSWORD }}
           command_timeout: 45m
+          envs: FRONTEND_CHANGED,BACKEND_CHANGED,DEPLOY_CHANGED
           script: |
             set -euo pipefail
-            export DOCKER_CLIENT_TIMEOUT=600
-            export COMPOSE_HTTP_TIMEOUT=600
+            export DOCKER_CLIENT_TIMEOUT=300
+            export COMPOSE_HTTP_TIMEOUT=300
             cd /opt/todotask
 
             if [ -n "${{ secrets.GHCR_TOKEN }}" ]; then
               echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
             fi
 
-            attempt=1
-            until [ "$attempt" -gt 3 ]
-            do
-              echo "Pull attempt ${attempt}/3"
-              if docker compose -f docker-compose.prod.yml pull frontend backend mongo; then
-                break
+            diagnose_network() {
+              local target="pkg-containers.githubusercontent.com"
+              echo "========== NETWORK DIAG START =========="
+              echo "[diag] date: $(date -Is)"
+              echo "[diag] target: ${target}"
+              echo "[diag] DNS A/AAAA"
+              getent ahostsv4 "$target" || true
+              getent ahostsv6 "$target" || true
+              echo "[diag] curl ghcr.io"
+              curl -I --connect-timeout 8 --max-time 20 https://ghcr.io || true
+              echo "[diag] curl pkg-containers"
+              curl -I --connect-timeout 8 --max-time 20 "https://${target}" || true
+              echo "[diag] docker info Registry Mirrors"
+              docker info 2>/dev/null | sed -n '/Registry Mirrors/,+8p' || true
+              echo "=========== NETWORK DIAG END ==========="
+            }
+
+            pull_with_retry() {
+              local service="$1"
+              local max_attempts=3
+              local attempt=1
+
+              until [ "$attempt" -gt "$max_attempts" ]
+              do
+                echo "[${service}] Pull attempt ${attempt}/${max_attempts}"
+                if docker compose -f docker-compose.prod.yml pull "$service"; then
+                  return 0
+                fi
+
+                if [ "$attempt" -eq "$max_attempts" ]; then
+                  echo "[${service}] Pull failed after ${max_attempts} attempts"
+                  diagnose_network
+                  return 1
+                fi
+
+                local sleep_seconds=$((10 * attempt))
+                echo "[${service}] Pull failed, retry in ${sleep_seconds}s"
+                sleep "$sleep_seconds"
+                attempt=$((attempt + 1))
+              done
+            }
+
+            services_to_update=""
+            if [ "${DEPLOY_CHANGED}" = "true" ]; then
+              services_to_update="frontend backend"
+            else
+              if [ "${FRONTEND_CHANGED}" = "true" ]; then
+                services_to_update="${services_to_update} frontend"
               fi
-              if [ "$attempt" -eq 3 ]; then
-                echo "Pull failed after 3 attempts"
-                exit 1
+              if [ "${BACKEND_CHANGED}" = "true" ]; then
+                services_to_update="${services_to_update} backend"
               fi
-              attempt=$((attempt + 1))
-              sleep 20
+            fi
+
+            if [ -z "${services_to_update}" ]; then
+              echo "No deployable service changed, skip remote deploy."
+              exit 0
+            fi
+
+            echo "Services to update:${services_to_update}"
+            for svc in ${services_to_update}; do
+              pull_with_retry "$svc"
             done
 
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans ${services_to_update}
             docker image prune -f
+
+      - name: Skip deploy (no relevant changes)
+        if: steps.changes.outputs.frontend != 'true' && steps.changes.outputs.backend != 'true' && steps.changes.outputs.deploy != 'true'
+        run: echo "No frontend/backend/deploy changes detected, skip build and deploy."
