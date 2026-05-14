@@ -51,13 +51,13 @@ const router = createRouter({
       path: '/point-cloud',
       name: 'point-cloud',
       component: () => import('@/views/point-cloud/PointCloudView.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }
     },
     {
       path: '/image-annotator',
       name: 'image-annotator',
       component: () => import('@/views/image-annotator/ImageAnnotatorView.vue'),
-      meta: { requiresAuth: true }
+      meta: { requiresAuth: false }
     },
     {
       path: '/:pathMatch(.*)*',

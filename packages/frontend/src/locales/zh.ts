@@ -10,11 +10,12 @@ export default {
     loading: "加载中...",
   },
   home: {
-    heroBadge: "实时协同工作流",
-    heroTitleSuffix: "任务指挥舱",
-    subtitle: "沉浸式个人任务管理系统",
-    start: "立即开始",
-    toLogin: "去登录",
+    title: "个人空间",
+    subtitle: "永远相信美好即将发生",
+    entryTasks: "任务管理系统",
+    entryPointCloud: "点云看板",
+    entryAnnotator: "图片标注",
+    languageToggleAria: "切换语言",
   },
   auth: {
     loginTitle: "任务系统",
