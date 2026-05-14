@@ -264,3 +264,19 @@ todotask/
 - 根目录 `auth/` 仅用于本机保存 token、账号、API Key 等敏感信息，已通过 `.gitignore` 排除，**禁止提交到远端仓库**。
 - Apifox 凭据建议存放在 `auth/apifox.md`，字段包括 Project ID 与 Personal Access Token。
 - MCP 源码、项目文档和提交记录中不得写入真实 token；如发生泄露，应立即在对应平台吊销并重新生成。
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+Issues/PRD 统一使用 GitHub Issues（`gh` CLI）。详见 `docs/agents/issue-tracker.md`。
+
+### Triage labels
+
+采用默认五类标签映射：`needs-triage`、`needs-info`、`ready-for-agent`、`ready-for-human`、`wontfix`。详见 `docs/agents/triage-labels.md`。
+
+### Domain docs
+
+采用 `single-context` 布局：根目录 `CONTEXT.md` + `docs/adr/`。详见 `docs/agents/domain.md`。

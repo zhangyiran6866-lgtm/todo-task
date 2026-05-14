@@ -10,11 +10,12 @@ export default {
     loading: "加载中...",
   },
   home: {
-    heroBadge: "实时协同工作流",
-    heroTitleSuffix: "任务指挥舱",
-    subtitle: "沉浸式个人任务管理系统",
-    start: "立即开始",
-    toLogin: "去登录",
+    title: "个人空间",
+    subtitle: "永远相信美好即将发生",
+    entryTasks: "任务管理系统",
+    entryPointCloud: "点云看板",
+    entryAnnotator: "图片标注",
+    languageToggleAria: "切换语言",
   },
   auth: {
     loginTitle: "任务系统",
@@ -46,6 +47,7 @@ export default {
   },
   tasks: {
     title: "任务列表",
+    backHome: "返回首页",
     pointCloudBoard: "点云看板",
     imageAnnotator: "图片标注",
     appearance: "外观设置",
@@ -94,6 +96,7 @@ export default {
   pointCloud: {
     title: "3D 点云看板",
     backToTasks: "返回任务列表",
+    backToHome: "返回首页",
     datasetLabel: "数据集",
     statusLabel: "渲染状态",
     pointsLabel: "点数量",
@@ -119,6 +122,7 @@ export default {
     undo: "后退",
     drawTools: "绘制工具",
     uploadHint: "请先上传图片，再开始添加标注",
+    backToHome: "返回首页",
     properties: "属性面板",
     currentId: "当前元素 ID",
     noneSelected: "未选中",
