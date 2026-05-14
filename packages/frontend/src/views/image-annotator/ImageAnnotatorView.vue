@@ -2,11 +2,14 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { ArrowLeft, Hand, PenTool, Undo2 } from "lucide-vue-next";
+import { ArrowLeft, Globe, Hand, PenTool, Undo2 } from "lucide-vue-next";
 import paper from "paper";
+import { useThemeStore } from "@/stores/use-theme-store";
 
 const router = useRouter();
+const themeStore = useThemeStore();
 const { t } = useI18n();
+const nextLanguageLabel = computed(() => (themeStore.language === "zh" ? t("lang.en") : t("lang.zh")));
 
 type ShapeKind = "rectangle" | "ellipse" | "triangle" | "star" | "heart";
 type ToolMode = "select" | ShapeKind;
@@ -963,8 +966,13 @@ function toHexColor(color: paper.Color | null, fallback: string): string {
   return color.toCSS(true);
 }
 
-function backToTasks() {
-  router.push("/tasks");
+function toggleLanguage() {
+  const nextLanguage = themeStore.language === "zh" ? "en" : "zh";
+  themeStore.setLanguage(nextLanguage);
+}
+
+function backToHome() {
+  router.push("/");
 }
 </script>
 
@@ -972,11 +980,20 @@ function backToTasks() {
   <main class="min-h-screen bg-[#050a0f] text-white">
     <section class="relative mx-auto max-w-[1400px] px-4 py-6 md:px-6 md:py-8">
       <button
+        class="absolute right-4 top-6 z-20 inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#0b1219]/80 px-3 py-2 text-xs font-medium text-white/85 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-neon hover:text-neon md:right-6 md:top-8"
+        :aria-label="t('home.languageToggleAria')"
+        @click="toggleLanguage"
+      >
+        <Globe class="h-3.5 w-3.5" />
+        <span>{{ nextLanguageLabel }}</span>
+      </button>
+
+      <button
         class="absolute left-4 top-6 inline-flex items-center gap-1.5 rounded-full border border-white/20 px-3 py-1.5 text-sm text-white/85 transition-colors hover:border-neon hover:text-neon md:left-6 md:top-8"
-        @click="backToTasks"
+        @click="backToHome"
       >
         <ArrowLeft class="h-4 w-4" />
-        <span class="hidden sm:inline">{{ t("tasks.backToList") }}</span>
+        <span class="hidden sm:inline">{{ t("annotator.backToHome") }}</span>
       </button>
 
       <header class="mb-6 flex items-center justify-center">

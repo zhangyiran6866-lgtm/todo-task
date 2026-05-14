@@ -1,4 +1,18 @@
 <script setup lang="ts">
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import { Globe } from "lucide-vue-next";
+import { useThemeStore } from "@/stores/use-theme-store";
+
+const themeStore = useThemeStore();
+const { t } = useI18n();
+const nextLanguageLabel = computed(() => (themeStore.language === "zh" ? t("lang.en") : t("lang.zh")));
+
+function toggleLanguage() {
+  const nextLanguage = themeStore.language === "zh" ? "en" : "zh";
+  themeStore.setLanguage(nextLanguage);
+}
+
 const particleOptions = {
   background: { color: { value: 'transparent' } },
   fpsLimit: 60,
@@ -17,6 +31,15 @@ const particleOptions = {
 
 <template>
   <div class="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#02050a]">
+    <button
+      class="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#0b1219]/80 px-3 py-2 text-xs font-medium text-white/85 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-neon hover:text-neon md:right-7 md:top-7"
+      :aria-label="t('home.languageToggleAria')"
+      @click="toggleLanguage"
+    >
+      <Globe class="h-3.5 w-3.5" />
+      <span>{{ nextLanguageLabel }}</span>
+    </button>
+
     <!-- 动态星空散点背景，跨路由保持不变 -->
     <vue-particles
       id="tsparticles-auth"

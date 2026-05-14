@@ -47,6 +47,7 @@ export default {
   },
   tasks: {
     title: "Tasks",
+    backHome: "Back to home",
     pointCloudBoard: "Point Cloud",
     imageAnnotator: "Image Annotator",
     appearance: "Appearance",
@@ -95,6 +96,7 @@ export default {
   pointCloud: {
     title: "3D Point Cloud Dashboard",
     backToTasks: "Back to task list",
+    backToHome: "Back to home",
     datasetLabel: "Dataset",
     statusLabel: "Render status",
     pointsLabel: "Point count",
@@ -120,6 +122,7 @@ export default {
     undo: "Undo",
     drawTools: "Drawing Tools",
     uploadHint: "Upload an image first, then add annotations",
+    backToHome: "Back to home",
     properties: "Properties",
     currentId: "Current Element ID",
     noneSelected: "None",

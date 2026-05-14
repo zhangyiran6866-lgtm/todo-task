@@ -47,6 +47,7 @@ export default {
   },
   tasks: {
     title: "任务列表",
+    backHome: "返回首页",
     pointCloudBoard: "点云看板",
     imageAnnotator: "图片标注",
     appearance: "外观设置",
@@ -95,6 +96,7 @@ export default {
   pointCloud: {
     title: "3D 点云看板",
     backToTasks: "返回任务列表",
+    backToHome: "返回首页",
     datasetLabel: "数据集",
     statusLabel: "渲染状态",
     pointsLabel: "点数量",
@@ -120,6 +122,7 @@ export default {
     undo: "后退",
     drawTools: "绘制工具",
     uploadHint: "请先上传图片，再开始添加标注",
+    backToHome: "返回首页",
     properties: "属性面板",
     currentId: "当前元素 ID",
     noneSelected: "未选中",
