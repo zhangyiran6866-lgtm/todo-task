@@ -327,7 +327,7 @@ function handleLogout() {
 <template>
   <div class="min-h-screen bg-[#050a0f] flex flex-col overflow-hidden">
     <header
-      class="h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-6 bg-glass sticky top-0 z-20"
+      class="h-16 border-b border-white/5 flex items-center justify-between px-4 md:px-6 bg-glass sticky top-0 z-40"
     >
       <div class="flex items-center gap-3">
         <div
@@ -442,7 +442,7 @@ function handleLogout() {
 
           <div
             v-if="isUserMenuOpen"
-            class="absolute right-0 top-12 w-40 bg-[#0b1219]/95 border border-white/10 rounded-xl p-1.5 shadow-[0_14px_40px_rgba(0,0,0,0.35)]"
+            class="absolute right-0 top-12 z-50 w-40 bg-[#0b1219]/95 border border-white/10 rounded-xl p-1.5 shadow-[0_14px_40px_rgba(0,0,0,0.35)]"
           >
             <button
               class="w-full text-left px-3 py-2 text-sm text-white/75 rounded-lg hover:bg-white/8 transition-colors"
@@ -610,7 +610,7 @@ function handleLogout() {
         class="flex-1 p-4 md:p-6 overflow-y-auto w-full relative"
       >
         <div class="max-w-5xl mx-auto pb-24">
-          <div class="md:hidden relative z-30 mb-5 grid grid-cols-2 gap-2">
+          <div class="md:hidden relative z-10 mb-5 grid grid-cols-2 gap-2">
             <div
               ref="mobileStatusMenuRef"
               class="mobile-filter-panel"
@@ -798,7 +798,7 @@ function handleLogout() {
 
 .mobile-filter-panel {
   position: relative;
-  z-index: 30;
+  z-index: 1;
   border-radius: 0.75rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: linear-gradient(
@@ -811,7 +811,7 @@ function handleLogout() {
 }
 
 .mobile-filter-panel--active {
-  z-index: 80;
+  z-index: 5;
 }
 
 .mobile-filter-trigger {
@@ -846,7 +846,7 @@ function handleLogout() {
 
 .mobile-filter-menu {
   position: absolute;
-  z-index: 90;
+  z-index: 10;
   top: calc(100% + 0.35rem);
   left: 0;
   width: 100%;
