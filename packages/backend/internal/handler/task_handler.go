@@ -78,6 +78,14 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 
 	task, err := h.svc.CreateTask(c.Request.Context(), uid, &req)
 	if err != nil {
+		if errors.Is(err, service.ErrDueAtRequired) {
+			response.BadRequest(c, "截止时间为必填项")
+			return
+		}
+		if errors.Is(err, service.ErrInvalidTaskTimeRange) {
+			response.BadRequest(c, "开始时间不能晚于截止时间")
+			return
+		}
 		reqLogger.Error("create task failed", zap.Error(err))
 		response.InternalError(c, "创建任务失败")
 		return
@@ -94,9 +102,9 @@ func (h *TaskHandler) CreateTask(c *gin.Context) {
 // @Produce json
 // @Security BearerAuth
 // @Param status query string false "Filter by status (todo, in_progress, done)"
-// @Param priority query string false "Filter by priority (low, medium, high)"
+// @Param priority query string false "Filter by priority (critical, important, urgent, routine, low)"
 // @Param limit query int false "Max number of items to return (default 20, max 50)"
-// @Param cursor query string false "Cursor for pagination (ObjectId of the last item in previous page)"
+// @Param cursor query string false "Cursor token returned by previous page"
 // @Success 200 {object} response.Response{data=service.ListTasksResp} "Successfully retrieved tasks"
 // @Failure 400 {object} response.Response "Invalid query parameters"
 // @Failure 401 {object} response.Response "Unauthorized"
@@ -118,6 +126,10 @@ func (h *TaskHandler) ListTasks(c *gin.Context) {
 
 	resp, err := h.svc.ListTasks(c.Request.Context(), uid, &req)
 	if err != nil {
+		if errors.Is(err, service.ErrInvalidCursor) {
+			response.BadRequest(c, "分页游标不合法")
+			return
+		}
 		reqLogger.Error("list tasks failed", zap.Error(err))
 		response.InternalError(c, "获取任务列表失败")
 		return
@@ -216,6 +228,14 @@ func (h *TaskHandler) UpdateTask(c *gin.Context) {
 
 	err := h.svc.UpdateTask(c.Request.Context(), uid, taskID, &req)
 	if err != nil {
+		if errors.Is(err, service.ErrDueAtRequired) {
+			response.BadRequest(c, "截止时间为必填项")
+			return
+		}
+		if errors.Is(err, service.ErrInvalidTaskTimeRange) {
+			response.BadRequest(c, "开始时间不能晚于截止时间")
+			return
+		}
 		if errors.Is(err, repository.ErrTaskNotFound) {
 			response.NotFound(c, "任务不存在")
 			return

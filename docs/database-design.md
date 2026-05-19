@@ -48,6 +48,7 @@ type Task struct {
     Description string             `bson:"description"    json:"description"`
     Status      string             `bson:"status"         json:"status"`      // "todo"|"in_progress"|"done"
     Priority    string             `bson:"priority"       json:"priority"`    // "critical"|"important"|"urgent"|"routine"|"low"
+    StartAt     *time.Time         `bson:"start_at"       json:"start_at"`    // 可选开始时间
     DueAt       *time.Time         `bson:"due_at"         json:"due_at"`
     IsDeleted   bool               `bson:"is_deleted"     json:"-"`
     DeletedAt   *time.Time         `bson:"deleted_at"     json:"-"`
@@ -57,7 +58,7 @@ type Task struct {
 ```
 
 **索引**：
-- `{user_id: 1, is_deleted: 1, created_at: -1}`：复合索引（ESR 规则）
+- `{user_id: 1, is_deleted: 1, status: 1, start_at: 1, due_at: 1, updated_at: -1, _id: -1}`：任务列表排序与分页复合索引
 - `{user_id: 1, status: 1}`：状态筛选索引
 
 ---

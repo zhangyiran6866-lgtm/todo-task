@@ -189,18 +189,20 @@ POST /tasks
   "title": "完成接口文档",
   "description": "编写所有 API 接口说明",
   "priority": "critical",
+  "start_at": "2024-12-30T09:00:00Z",
   "due_at": "2024-12-31T23:59:59Z"
 }
 ```
 
 `priority` 可选值：`critical` / `important` / `urgent` / `routine` / `low`
+`start_at` 可选；`due_at` 必填，且若填写 `start_at` 则必须满足 `start_at <= due_at`
 
 ---
 
 ### 3.2 获取任务列表
 
 ```
-GET /tasks?status=todo&priority=urgent&limit=20&cursor=<last_id>
+GET /tasks?status=todo&priority=urgent&limit=20&cursor=<next_cursor>
 ```
 
 **Query 参数**
@@ -210,7 +212,7 @@ GET /tasks?status=todo&priority=urgent&limit=20&cursor=<last_id>
 | `status` | string | 可选，过滤状态 |
 | `priority` | string | 可选，过滤优先级（`critical`/`important`/`urgent`/`routine`/`low`） |
 | `limit` | int | 默认 20，最大 50 |
-| `cursor` | string | 游标分页，上一页最后一条 `id` |
+| `cursor` | string | 游标分页，使用上一页返回的 `next_cursor` |
 
 **Response**
 
@@ -223,6 +225,8 @@ GET /tasks?status=todo&priority=urgent&limit=20&cursor=<last_id>
   }
 }
 ```
+
+默认排序：`未完成未过期` → `已过期` → `已完成`，组内按 `start_at` 升序（空值后置）→ `due_at` 升序（空值后置）→ `updated_at` 降序。
 
 ---
 
@@ -246,9 +250,13 @@ PATCH /tasks/:id
 {
   "title": "新标题",
   "status": "in_progress",
-  "priority": "important"
+  "priority": "important",
+  "start_at": "2024-12-30T09:00:00Z",
+  "due_at": "2024-12-31T23:59:59Z"
 }
 ```
+
+`start_at` 支持传 `null` 以清空；`due_at` 不允许为 `null`
 
 ---
 

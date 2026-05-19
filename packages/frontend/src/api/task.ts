@@ -14,6 +14,7 @@ export interface Task {
   description: string;
   status: "todo" | "in_progress" | "done";
   priority: TaskPriority;
+  start_at: string | null;
   due_at: string | null;
   created_at: string;
   updated_at: string;
@@ -35,13 +36,15 @@ export interface CreateTaskReq {
   title: string;
   description?: string;
   priority?: TaskPriority;
-  due_at?: string;
+  start_at?: string;
+  due_at: string;
 }
 
 export interface UpdateTaskReq {
   title?: string;
   status?: string;
   priority?: TaskPriority;
+  start_at?: string | null;
   due_at?: string;
   description?: string;
 }
