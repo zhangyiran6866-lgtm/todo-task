@@ -126,6 +126,10 @@ const sortedTasks = computed(() => {
     const rankDiff = getRank(a) - getRank(b);
     if (rankDiff !== 0) return rankDiff;
 
+    const aStart = a.start_at ? new Date(a.start_at).getTime() : Number.POSITIVE_INFINITY;
+    const bStart = b.start_at ? new Date(b.start_at).getTime() : Number.POSITIVE_INFINITY;
+    if (aStart !== bStart) return aStart - bStart;
+
     const aDue = a.due_at ? new Date(a.due_at).getTime() : Number.POSITIVE_INFINITY;
     const bDue = b.due_at ? new Date(b.due_at).getTime() : Number.POSITIVE_INFINITY;
     if (aDue !== bDue) return aDue - bDue;

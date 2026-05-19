@@ -85,9 +85,18 @@
         </p>
 
         <div
+          v-if="task.start_at"
+          class="flex items-center gap-1.5 text-xs text-white/50"
+          :class="viewMode === 'list' ? 'mt-2' : 'mt-3'"
+        >
+          <Clock3 class="w-3.5 h-3.5" />
+          <span>{{ t('tasks.startDateShort') }}{{ formattedStartDate }}</span>
+        </div>
+
+        <div
           v-if="task.due_at"
           class="flex items-center gap-1.5 text-xs"
-          :class="[viewMode === 'list' ? 'mt-2' : 'mt-3', dueDateColor]"
+          :class="[task.start_at ? 'mt-1.5' : (viewMode === 'list' ? 'mt-2' : 'mt-3'), dueDateColor]"
         >
           <Calendar class="w-3.5 h-3.5" />
           <span>{{ t('tasks.dueDateShort') }}{{ formattedDate }}</span>
@@ -138,7 +147,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Calendar, AlertCircle, AlertTriangle, ArrowUpCircle, Check } from 'lucide-vue-next'
+import { Calendar, AlertCircle, AlertTriangle, ArrowUpCircle, Check, Clock3 } from 'lucide-vue-next'
 import type { Task } from '@/api/task'
 
 const props = withDefaults(defineProps<{
@@ -209,6 +218,16 @@ const dueDateColor = computed(() => {
 const formattedDate = computed(() => {
   if (!props.task.due_at) return ''
   return new Date(props.task.due_at).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+})
+
+const formattedStartDate = computed(() => {
+  if (!props.task.start_at) return ''
+  return new Date(props.task.start_at).toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
